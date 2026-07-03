@@ -15,9 +15,29 @@ seedAdmin();
 // Middleware
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
+app.get('/', (req, res) => {
+  res.json({
+    message: '🚀 Lucent Glass API is running!',
+    version: '1.0.0',
+    endpoints: {
+      pages: '/api/pages',
+      products: '/api/products',
+      projects: '/api/projects',
+      menu: '/api/menu',
+      settings: '/api/settings',
+      auth: '/api/auth/login'
+    }
+  });
+});
+
+// Health check (tùy chọn)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', uptime: process.uptime() });
+});
 
 // Routes
 app.use('/api/pages', require('./routes/pages'));
+app.use('/api/products', require('./routes/products'));
 app.use('/api/menu', require('./routes/menu'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/auth', require('./routes/auth'));
