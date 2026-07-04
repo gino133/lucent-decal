@@ -1,8 +1,10 @@
 import axios from 'axios';
-
+// Lấy baseURL từ biến môi trường, nếu không có thì dùng localhost
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: https://lucent-glass-2.onrender.com/api || 'https://lucent-glass-2.onrender.com/',
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // Interceptor để gắn token nếu có
