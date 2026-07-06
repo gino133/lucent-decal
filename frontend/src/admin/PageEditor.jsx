@@ -1,9 +1,8 @@
-// frontend/src/admin/PageEditor.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, FormProvider, useFieldArray } from 'react-hook-form';
 import { getPage, savePage } from '../services/api';
-import SectionEditor from './components/SectionEditor';
+import AdminSectionEditor from './components/AdminSectionEditor';
 
 const PageEditor = () => {
   const { slug } = useParams();
@@ -25,16 +24,29 @@ const PageEditor = () => {
           const data = res.data;
           setValue('slug', data.slug);
           setValue('title', data.title);
-          setValue('sections', data.sections || []);
+          // Chuyển đổi dữ liệu để hiển thị trong form (parse buttonsText, statsText)
+          const sections = data.sections.map(sec => {
+            const newSec = { ...sec };
+            // Chuyển buttons thành text
+            if (sec.content && sec.content.buttons) {
+              newSec.content.buttonsText = sec.content.buttons.map(b => `${b.label}|${b.variant}`).join('\n');
+            }
+            // Chuyển stats thành text
+            if (sec.content && sec.content.stats) {
+              newSec.content.statsText = sec.content.stats.map(s => `${s.value}|${s.label}`).join('\n');
+            }
+            return newSec;
+          });
+          setValue('sections', sections);
         })
-        .catch(() => {});
+        .catch(err => console.error(err));
     }
   }, [slug, setValue]);
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      // Xử lý chuyển đổi dữ liệu từ form sang cấu trúc JSON đúng
+      // Xây dựng lại sections đúng định dạng
       const formattedSections = data.sections.map((sec, idx) => {
         const newSec = {
           type: sec.type,
@@ -43,11 +55,11 @@ const PageEditor = () => {
           style: { ...sec.style }
         };
 
-        // Xóa các trường tạm (buttonsText, statsText, ...) nếu có để tránh lưu thừa
+        // Xóa các trường tạm
         delete newSec.content.buttonsText;
         delete newSec.content.statsText;
 
-        // Chuyển đổi buttons từ text sang array
+        // Chuyển buttonsText thành mảng buttons
         if (sec.content.buttonsText) {
           newSec.content.buttons = sec.content.buttonsText.split('\n').filter(Boolean).map(line => {
             const [label, variant] = line.split('|');
@@ -55,7 +67,7 @@ const PageEditor = () => {
           });
         }
 
-        // Chuyển đổi stats từ text sang array
+        // Chuyển statsText thành mảng stats
         if (sec.content.statsText) {
           newSec.content.stats = sec.content.statsText.split('\n').filter(Boolean).map(line => {
             const [value, label] = line.split('|');
@@ -113,7 +125,7 @@ const PageEditor = () => {
           <div>
             <h2 className="font-bold text-lg mb-4">Sections</h2>
             {fields.map((field, index) => (
-              <SectionEditor
+              <AdminSectionEditor
                 key={field.id}
                 index={index}
                 onRemove={() => remove(index)}
