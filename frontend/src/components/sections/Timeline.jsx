@@ -1,17 +1,15 @@
-import React from 'react';
-
-const Timeline = ({ content, style = {} }) => {
-  const { title, events } = content;
+const Timeline = ({ content, style }) => {
+  const { title, events } = content || {};
   const {
     maxWidth = '1280px',
     textAlign = 'left',
-    paddingTop = 0,
-    paddingBottom = 0,
-    marginTop = 0,
-    marginBottom = 0,
+    paddingTop = '0px',
+    paddingBottom = '0px',
+    marginTop = '0px',
+    marginBottom = '0px',
     backgroundColor = 'transparent',
     backgroundImage = ''
-  } = style;
+  } = style || {};
 
   return (
     <section
@@ -45,5 +43,4 @@ const Timeline = ({ content, style = {} }) => {
     </section>
   );
 };
-
 export default Timeline;
