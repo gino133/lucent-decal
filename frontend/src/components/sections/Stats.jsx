@@ -1,21 +1,19 @@
-import React from 'react';
-
-const Stats = ({ content, style = {} }) => {
-  const { title, stats } = content;
+const Stats = ({ content, style }) => {
+  const { title, stats } = content || {};
   const {
     maxWidth = '1280px',
     textAlign = 'center',
-    paddingTop = 0,
-    paddingBottom = 0,
-    marginTop = 0,
-    marginBottom = 0,
+    paddingTop = '0px',
+    paddingBottom = '0px',
+    marginTop = '0px',
+    marginBottom = '0px',
     backgroundColor = 'transparent',
     backgroundImage = ''
-  } = style;
+  } = style || {};
 
   return (
     <section
-      className="py-16 md:py-24 px-margin-mobile md:px-margin-desktop mx-auto"
+      className="py-16 md:py-24 bg-inverse-surface text-surface px-margin-mobile md:px-margin-desktop mx-auto"
       style={{
         maxWidth,
         textAlign,
@@ -23,7 +21,7 @@ const Stats = ({ content, style = {} }) => {
         paddingBottom: paddingBottom + 'px',
         marginTop: marginTop + 'px',
         marginBottom: marginBottom + 'px',
-        backgroundColor,
+        backgroundColor: backgroundColor || '#1b1c1c',
         backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
         backgroundSize: backgroundImage ? 'cover' : 'auto',
         backgroundPosition: 'center'
@@ -41,5 +39,4 @@ const Stats = ({ content, style = {} }) => {
     </section>
   );
 };
-
 export default Stats;
