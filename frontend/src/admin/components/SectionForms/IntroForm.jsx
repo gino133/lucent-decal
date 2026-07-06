@@ -26,6 +26,7 @@ const IntroForm = ({ index }) => {
       <div>
         <label className="block font-bold text-sm">Thống kê (mỗi dòng: value|label)</label>
         <textarea {...register(`sections.${index}.content.statsText`)} className="w-full border p-2 rounded" rows="2" placeholder="12+|Năm kinh nghiệm&#10;500+|Dự án hoàn thành" />
+        <p className="text-xs text-on-surface-variant mt-1">Mỗi dòng một thống kê, phân cách bằng dấu |</p>
       </div>
       <LayoutControls index={index} />
     </div>
