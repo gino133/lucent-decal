@@ -1,43 +1,105 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { getMenu, saveMenu } from '../services/api';
-import { useForm, useFieldArray } from 'react-hook-form';
 
 const MenuManager = () => {
-  const { register, control, handleSubmit, setValue } = useForm({
-    defaultValues: { name: 'main-menu', items: [] }
-  });
-  const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+  const [items, setItems] = useState([]);
+  const [newLabel, setNewLabel] = useState('');
+  const [newLink, setNewLink] = useState('');
 
   useEffect(() => {
-    getMenu('main-menu').then(res => {
-      setValue('items', res.data.items || []);
-    }).catch(() => {});
-  }, [setValue]);
+    fetchMenu();
+  }, []);
 
-  const onSubmit = async (data) => {
+  const fetchMenu = async () => {
     try {
-      await saveMenu(data);
-      alert('Menu đã được cập nhật!');
-    } catch (err) {
-      alert('Lỗi khi lưu menu');
+      const res = await getMenu('main-menu');
+      setItems(res.data.items || []);
+    } catch (error) {
+      console.error('Error fetching menu:', error);
     }
+  };
+
+  const handleAdd = () => {
+    if (!newLabel || !newLink) return;
+    const newItem = { label: newLabel, link: newLink, order: items.length };
+    setItems([...items, newItem]);
+    setNewLabel('');
+    setNewLink('');
+  };
+
+  const handleDelete = (index) => {
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
+
+  const handleSave = async () => {
+    try {
+      await saveMenu({ name: 'main-menu', items });
+      alert('Menu đã được lưu!');
+    } catch (error) {
+      alert('Lỗi khi lưu menu!');
+    }
+  };
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    const newItems = Array.from(items);
+    const [reorderedItem] = newItems.splice(result.source.index, 1);
+    newItems.splice(result.destination.index, 0, reorderedItem);
+    setItems(newItems);
   };
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Quản lý Menu chính</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {fields.map((field, index) => (
-          <div key={field.id} className="flex gap-4 items-center border-b pb-2">
-            <input {...register(`items.${index}.label`)} placeholder="Nhãn" className="border p-2 flex-1" />
-            <input {...register(`items.${index}.link`)} placeholder="Đường dẫn" className="border p-2 flex-1" />
-            <input {...register(`items.${index}.order`)} type="number" className="border p-2 w-16" />
-            <button type="button" onClick={() => remove(index)} className="bg-error text-white px-3 py-1 rounded">Xóa</button>
-          </div>
-        ))}
-        <button type="button" onClick={() => append({ label: '', link: '', order: fields.length })} className="bg-secondary-fixed px-4 py-2 rounded">+ Thêm mục</button>
-        <button type="submit" className="bg-secondary-fixed text-on-secondary-fixed px-6 py-2 rounded font-bold">Lưu menu</button>
-      </form>
+      <h1 className="text-3xl font-bold mb-6">Quản lý Menu</h1>
+      <div className="bg-surface p-6 rounded-xl shadow-sm border border-outline-variant mb-6">
+        <div className="flex gap-4 mb-4">
+          <input
+            className="border p-2 rounded flex-1"
+            placeholder="Nhãn (VD: Trang chủ)"
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+          />
+          <input
+            className="border p-2 rounded flex-1"
+            placeholder="Đường dẫn (VD: /)"
+            value={newLink}
+            onChange={(e) => setNewLink(e.target.value)}
+          />
+          <button onClick={handleAdd} className="bg-secondary-fixed text-on-secondary-fixed px-4 py-2 rounded font-bold">
+            Thêm
+          </button>
+        </div>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="menu">
+            {(provided) => (
+              <ul {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                {items.map((item, index) => (
+                  <Draggable key={`${item.label}-${index}`} draggableId={`item-${index}`} index={index}>
+                    {(provided) => (
+                      <li
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="flex justify-between items-center bg-surface-container-low p-3 rounded border border-outline-variant"
+                      >
+                        <span>{item.label} - {item.link}</span>
+                        <button onClick={() => handleDelete(index)} className="text-error hover:underline">Xóa</button>
+                      </li>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </ul>
+            )}
+          </Droppable>
+        </DragDropContext>
+        <button onClick={handleSave} className="mt-4 bg-secondary-fixed text-on-secondary-fixed px-6 py-2 rounded font-bold">
+          Lưu menu
+        </button>
+      </div>
     </div>
   );
 };
