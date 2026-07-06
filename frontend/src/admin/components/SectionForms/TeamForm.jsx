@@ -1,4 +1,3 @@
-// frontend/src/admin/components/SectionForms/TeamForm.jsx
 import React from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 
@@ -17,21 +16,25 @@ const TeamForm = ({ index }) => {
       </div>
       <div>
         <label className="block font-bold text-sm">Mô tả</label>
-        <input {...register(`sections.${index}.content.subtitle`)} className="w-full border p-2 rounded" placeholder="Những con người tâm huyết..." />
+        <input {...register(`sections.${index}.content.subtitle`)} className="w-full border p-2 rounded" placeholder="Những con người tâm huyết đứng sau..." />
       </div>
       <div>
         <label className="block font-bold text-sm">Thành viên</label>
         {fields.map((field, idx) => (
-          <div key={field.id} className="border p-2 my-2 rounded bg-surface">
-            <div className="flex gap-2">
-              <input {...register(`sections.${index}.content.members.${idx}.name`)} placeholder="Tên" className="flex-1 border p-1 rounded" />
-              <input {...register(`sections.${index}.content.members.${idx}.role`)} placeholder="Vai trò" className="flex-1 border p-1 rounded" />
-              <button type="button" onClick={() => remove(idx)} className="bg-error text-white px-2 rounded">X</button>
+          <div key={field.id} className="border p-3 my-2 rounded bg-surface shadow-sm">
+            <div className="grid grid-cols-1 gap-2">
+              <div className="flex gap-2">
+                <input {...register(`sections.${index}.content.members.${idx}.name`)} placeholder="Họ tên" className="flex-1 border p-1 rounded" />
+                <input {...register(`sections.${index}.content.members.${idx}.role`)} placeholder="Vai trò" className="flex-1 border p-1 rounded" />
+                <button type="button" onClick={() => remove(idx)} className="bg-error text-white px-3 py-1 rounded hover:bg-red-700">X</button>
+              </div>
+              <input {...register(`sections.${index}.content.members.${idx}.image`)} placeholder="URL ảnh đại diện" className="w-full border p-1 rounded" />
             </div>
-            <input {...register(`sections.${index}.content.members.${idx}.image`)} placeholder="URL ảnh" className="w-full border p-1 rounded mt-1" />
           </div>
         ))}
-        <button type="button" onClick={() => append({ name: '', role: '', image: '' })} className="bg-secondary-fixed px-3 py-1 rounded text-sm">+ Thêm thành viên</button>
+        <button type="button" onClick={() => append({ name: '', role: '', image: '' })} className="bg-secondary-fixed px-3 py-1 rounded text-sm hover:opacity-80">
+          + Thêm thành viên
+        </button>
       </div>
       <div>
         <label className="block font-bold text-sm">Màu nền</label>

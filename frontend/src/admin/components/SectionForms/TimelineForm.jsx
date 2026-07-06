@@ -1,4 +1,3 @@
-// frontend/src/admin/components/SectionForms/TimelineForm.jsx
 import React from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 
@@ -18,16 +17,20 @@ const TimelineForm = ({ index }) => {
       <div>
         <label className="block font-bold text-sm">Các mốc thời gian</label>
         {fields.map((field, idx) => (
-          <div key={field.id} className="border p-2 my-2 rounded bg-surface">
-            <div className="flex gap-2">
-              <input {...register(`sections.${index}.content.events.${idx}.year`)} placeholder="Năm" className="w-24 border p-1 rounded" />
-              <input {...register(`sections.${index}.content.events.${idx}.title`)} placeholder="Tiêu đề" className="flex-1 border p-1 rounded" />
-              <button type="button" onClick={() => remove(idx)} className="bg-error text-white px-2 rounded">X</button>
+          <div key={field.id} className="border p-3 my-2 rounded bg-surface shadow-sm">
+            <div className="grid grid-cols-1 gap-2">
+              <div className="flex gap-2">
+                <input {...register(`sections.${index}.content.events.${idx}.year`)} placeholder="Năm (ví dụ: 2010)" className="w-28 border p-1 rounded" />
+                <input {...register(`sections.${index}.content.events.${idx}.title`)} placeholder="Tiêu đề sự kiện" className="flex-1 border p-1 rounded" />
+                <button type="button" onClick={() => remove(idx)} className="bg-error text-white px-3 py-1 rounded hover:bg-red-700">X</button>
+              </div>
+              <textarea {...register(`sections.${index}.content.events.${idx}.description`)} placeholder="Mô tả" className="w-full border p-1 rounded" rows="2" />
             </div>
-            <textarea {...register(`sections.${index}.content.events.${idx}.description`)} placeholder="Mô tả" className="w-full border p-1 rounded mt-1" rows="2" />
           </div>
         ))}
-        <button type="button" onClick={() => append({ year: '', title: '', description: '' })} className="bg-secondary-fixed px-3 py-1 rounded text-sm">+ Thêm mốc</button>
+        <button type="button" onClick={() => append({ year: '', title: '', description: '' })} className="bg-secondary-fixed px-3 py-1 rounded text-sm hover:opacity-80">
+          + Thêm mốc
+        </button>
       </div>
       <div>
         <label className="block font-bold text-sm">Màu nền</label>

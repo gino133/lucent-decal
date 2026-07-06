@@ -1,4 +1,3 @@
-// frontend/src/admin/components/SectionForms/TestimonialForm.jsx
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -9,7 +8,7 @@ const TestimonialForm = ({ index }) => {
     <div className="space-y-4 border p-4 rounded bg-surface-container-low">
       <div>
         <label className="block font-bold text-sm">Nội dung trích dẫn</label>
-        <textarea {...register(`sections.${index}.content.quote`)} className="w-full border p-2 rounded" rows="3" placeholder='"GLAZED không chỉ cung cấp decal..."' />
+        <textarea {...register(`sections.${index}.content.quote`)} className="w-full border p-2 rounded" rows="3" placeholder='"GLAZED không chỉ cung cấp decal, họ mang đến một ngôn ngữ thiết kế hoàn toàn mới..."' />
       </div>
       <div>
         <label className="block font-bold text-sm">Tác giả</label>
