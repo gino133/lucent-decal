@@ -1,5 +1,6 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
+import LayoutControls from './LayoutControls';
 
 const HeroForm = ({ index }) => {
   const { register } = useFormContext();
@@ -23,10 +24,9 @@ const HeroForm = ({ index }) => {
         <textarea {...register(`sections.${index}.content.buttonsText`)} className="w-full border p-2 rounded" rows="2" placeholder="Nhận tư vấn ngay|primary&#10;Xem bộ sưu tập|secondary" />
         <p className="text-xs text-on-surface-variant mt-1">Variant: primary (vàng), secondary (viền đen)</p>
       </div>
-      <div>
-        <label className="block font-bold text-sm">Màu nền</label>
-        <input {...register(`sections.${index}.style.backgroundColor`)} className="w-full border p-2 rounded" placeholder="#fbf9f9" />
-      </div>
+
+      {/* Layout Controls */}
+      <LayoutControls index={index} />
     </div>
   );
 };

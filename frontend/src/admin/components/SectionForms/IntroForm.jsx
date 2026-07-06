@@ -1,5 +1,6 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
+import LayoutControls from './LayoutControls';
 
 const IntroForm = ({ index }) => {
   const { register } = useFormContext();
@@ -25,12 +26,8 @@ const IntroForm = ({ index }) => {
       <div>
         <label className="block font-bold text-sm">Thống kê (mỗi dòng: value|label)</label>
         <textarea {...register(`sections.${index}.content.statsText`)} className="w-full border p-2 rounded" rows="2" placeholder="12+|Năm kinh nghiệm&#10;500+|Dự án hoàn thành" />
-        <p className="text-xs text-on-surface-variant mt-1">Mỗi dòng một thống kê, phân cách value và label bằng dấu |</p>
       </div>
-      <div>
-        <label className="block font-bold text-sm">Màu nền</label>
-        <input {...register(`sections.${index}.style.backgroundColor`)} className="w-full border p-2 rounded" placeholder="#fbf9f9" />
-      </div>
+      <LayoutControls index={index} />
     </div>
   );
 };

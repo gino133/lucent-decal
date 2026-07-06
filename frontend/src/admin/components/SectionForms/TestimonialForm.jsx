@@ -1,5 +1,6 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
+import LayoutControls from './LayoutControls';
 
 const TestimonialForm = ({ index }) => {
   const { register } = useFormContext();
@@ -8,7 +9,7 @@ const TestimonialForm = ({ index }) => {
     <div className="space-y-4 border p-4 rounded bg-surface-container-low">
       <div>
         <label className="block font-bold text-sm">Nội dung trích dẫn</label>
-        <textarea {...register(`sections.${index}.content.quote`)} className="w-full border p-2 rounded" rows="3" placeholder='"GLAZED không chỉ cung cấp decal, họ mang đến một ngôn ngữ thiết kế hoàn toàn mới..."' />
+        <textarea {...register(`sections.${index}.content.quote`)} className="w-full border p-2 rounded" rows="3" placeholder='"GLAZED không chỉ cung cấp decal..."' />
       </div>
       <div>
         <label className="block font-bold text-sm">Tác giả</label>
@@ -22,10 +23,7 @@ const TestimonialForm = ({ index }) => {
         <label className="block font-bold text-sm">URL ảnh đại diện</label>
         <input {...register(`sections.${index}.content.avatar`)} className="w-full border p-2 rounded" placeholder="https://..." />
       </div>
-      <div>
-        <label className="block font-bold text-sm">Màu nền</label>
-        <input {...register(`sections.${index}.style.backgroundColor`)} className="w-full border p-2 rounded" placeholder="#fbf9f9" />
-      </div>
+      <LayoutControls index={index} />
     </div>
   );
 };
