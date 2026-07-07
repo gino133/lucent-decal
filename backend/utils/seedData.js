@@ -12,7 +12,7 @@ const IMG = (seed) => `https://picsum.photos/seed/${seed}/1200/800`;
 // Hàm seed dùng chung cho cả CLI (`npm run seed`) và API (/api/seed)
 // force=false (mặc định): chỉ tạo tài khoản admin nếu chưa có, KHÔNG đụng vào dữ liệu nội dung đã có sẵn
 // force=true: xoá và tạo lại toàn bộ dữ liệu mẫu (menu, trang, danh mục, sản phẩm, dự án)
-async function runSeed({ force = false } = {}) {
+async function runSeed({ force = false, resetPassword = false } = {}) {
   const log = [];
 
   // 1. Admin user — luôn kiểm tra, không bao giờ xoá user cũ
@@ -22,6 +22,11 @@ async function runSeed({ force = false } = {}) {
     const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || "Admin@123456", 10);
     await User.create({ name: "Quản trị viên", email: adminEmail, password: hashed, role: "admin" });
     log.push(`Đã tạo tài khoản admin: ${adminEmail}`);
+  } else if (resetPassword) {
+    const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD || "Admin@123456", 10);
+    existingAdmin.password = hashed;
+    await existingAdmin.save();
+    log.push(`Đã đặt lại mật khẩu cho tài khoản admin: ${adminEmail} (theo giá trị ADMIN_PASSWORD hiện tại)`);
   } else {
     log.push(`Tài khoản admin đã tồn tại: ${adminEmail} (bỏ qua)`);
   }
