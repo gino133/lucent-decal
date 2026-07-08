@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import BlockEditor from "@/components/admin/BlockEditor";
 
-const PAGE_LABELS = {
+// Các trang cố định luôn có link cứng ngoài website (không theo /trang/<slug>)
+const FIXED_PAGE_LABELS = {
   home: "Trang chủ", "gioi-thieu": "Giới thiệu",
   "ho-so-nang-luc": "Hồ sơ năng lực", "lien-he": "Liên hệ",
-  "chinh-sach-bao-mat": "Chính sách bảo mật", "dieu-khoan": "Điều khoản dịch vụ",
 };
 
 const BLOCK_TYPES = [
@@ -15,21 +15,37 @@ const BLOCK_TYPES = [
 ];
 
 export default function AdminPagesPage() {
-  const [slugs, setSlugs] = useState(Object.keys(PAGE_LABELS));
-  const [customLabels, setCustomLabels] = useState({});
+  const [allPages, setAllPages] = useState([]); // toàn bộ trang lấy thật từ database
+  const [loadingList, setLoadingList] = useState(true);
   const [newSlug, setNewSlug] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [activeSlug, setActiveSlug] = useState("home");
   const [page, setPage] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  // Luôn tải lại danh sách trang THẬT từ server (không dùng state tạm client)
+  // để sau khi F5 vẫn thấy đầy đủ các trang đã tạo, kể cả trang tuỳ chỉnh.
+  async function loadPageList() {
+    setLoadingList(true);
+    try {
+      const { data } = await api.get("/pages");
+      setAllPages(data || []);
+    } catch {
+      setAllPages([]);
+    } finally {
+      setLoadingList(false);
+    }
+  }
+  useEffect(() => { loadPageList(); }, []);
 
   async function load(slug) {
     setPage(null);
     try {
       const { data } = await api.get(`/pages/admin/${slug}`);
-      setPage(data || { slug, title: allLabels[slug] || slug, blocks: [] });
+      setPage(data || { slug, title: FIXED_PAGE_LABELS[slug] || slug, blocks: [] });
     } catch {
-      setPage({ slug, title: allLabels[slug] || slug, blocks: [] });
+      setPage({ slug, title: FIXED_PAGE_LABELS[slug] || slug, blocks: [] });
     }
   }
   useEffect(() => { load(activeSlug); }, [activeSlug]);
@@ -54,37 +70,90 @@ export default function AdminPagesPage() {
 
   async function save() {
     setSaving(true);
-    await api.put(`/pages/${activeSlug}`, page);
-    setSaving(false);
-    alert("Đã lưu nội dung trang!");
+    try {
+      await api.put(`/pages/${activeSlug}`, page);
+      await loadPageList();
+      alert("Đã lưu nội dung trang!");
+    } catch (err) {
+      alert(err.response?.data?.message || "Lưu thất bại, vui lòng thử lại.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function createCustomPage() {
+  // Tạo trang mới: LƯU NGAY xuống database (không chỉ thêm tạm trên giao diện)
+  // để đường dẫn /trang/<slug> hoạt động ngay và trang xuất hiện lại sau khi F5.
+  async function createCustomPage() {
     const slug = newSlug.trim()
       .toLowerCase()
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     if (!slug || !newTitle.trim()) return alert("Nhập đầy đủ tên và đường dẫn (slug) cho trang mới.");
-    if (slugs.includes(slug)) return alert("Slug này đã tồn tại.");
-    setSlugs((prev) => [...prev, slug]);
-    setCustomLabels((prev) => ({ ...prev, [slug]: newTitle.trim() }));
-    setActiveSlug(slug);
-    setNewSlug("");
-    setNewTitle("");
+    if (allPages.some((p) => p.slug === slug) || FIXED_PAGE_LABELS[slug]) {
+      return alert("Slug này đã tồn tại, vui lòng chọn slug khác.");
+    }
+
+    setCreating(true);
+    try {
+      await api.put(`/pages/${slug}`, {
+        slug,
+        title: newTitle.trim(),
+        blocks: [{ type: "richtext", order: 0, data: { html: "<p>Nội dung mới...</p>" }, visible: true }],
+      });
+      await loadPageList();
+      setActiveSlug(slug);
+      setNewSlug("");
+      setNewTitle("");
+    } catch (err) {
+      alert(err.response?.data?.message || "Tạo trang thất bại, vui lòng thử lại.");
+    } finally {
+      setCreating(false);
+    }
   }
 
-  const allLabels = { ...PAGE_LABELS, ...customLabels };
+  async function deletePage(slug) {
+    if (FIXED_PAGE_LABELS[slug]) return alert("Không thể xoá trang mặc định của hệ thống.");
+    if (!confirm(`Xoá hẳn trang "${allLabels(slug)}"? Đường dẫn /trang/${slug} sẽ ngừng hoạt động.`)) return;
+    await api.delete(`/pages/${slug}`);
+    await loadPageList();
+    if (activeSlug === slug) setActiveSlug("home");
+  }
+
+  const customPagesMap = Object.fromEntries(allPages.map((p) => [p.slug, p.title]));
+  function allLabels(slug) {
+    return FIXED_PAGE_LABELS[slug] || customPagesMap[slug] || slug;
+  }
+
+  // Danh sách tab: các trang cố định luôn hiện trước, sau đó tới các trang tuỳ chỉnh
+  // (loại các slug trùng với trang cố định để tránh hiện 2 lần).
+  const customSlugs = allPages.map((p) => p.slug).filter((s) => !FIXED_PAGE_LABELS[s]);
+  const tabSlugs = [...Object.keys(FIXED_PAGE_LABELS), ...customSlugs];
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2">Nội dung trang</h1>
       <p className="text-sm text-gray-500 mb-6">Chỉnh sửa từng khối nội dung như xây trang bằng Gutenberg/Elementor của WordPress.</p>
 
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {slugs.map((s) => (
-          <button key={s} onClick={() => setActiveSlug(s)} className={`px-4 py-2 rounded-full text-sm font-semibold ${activeSlug === s ? "bg-black text-white" : "bg-white"}`}>
-            {allLabels[s] || s}
-          </button>
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
+        {loadingList && <span className="text-sm text-gray-400">Đang tải danh sách trang...</span>}
+        {tabSlugs.map((s) => (
+          <div key={s} className="relative group">
+            <button
+              onClick={() => setActiveSlug(s)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold ${activeSlug === s ? "bg-black text-white" : "bg-white"}`}
+            >
+              {allLabels(s)}
+            </button>
+            {!FIXED_PAGE_LABELS[s] && (
+              <button
+                onClick={() => deletePage(s)}
+                title="Xoá trang này"
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] leading-4 opacity-0 group-hover:opacity-100"
+              >
+                ×
+              </button>
+            )}
+          </div>
         ))}
       </div>
 
@@ -97,12 +166,25 @@ export default function AdminPagesPage() {
           <label className="block text-xs font-semibold mb-1">Đường dẫn (slug)</label>
           <input value={newSlug} onChange={(e) => setNewSlug(e.target.value)} placeholder="VD: tuyen-dung" className="border rounded-lg px-3 py-2 text-sm" />
         </div>
-        <button onClick={createCustomPage} className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg font-semibold">+ Tạo trang mới</button>
-        <p className="text-xs text-gray-400 w-full">Trang mới sẽ có đường dẫn <code>/trang/&lt;slug&gt;</code> ngoài website.</p>
+        <button onClick={createCustomPage} disabled={creating} className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg font-semibold disabled:opacity-50">
+          {creating ? "Đang tạo..." : "+ Tạo trang mới"}
+        </button>
+        <p className="text-xs text-gray-400 w-full">
+          Trang mới sẽ được lưu ngay và có đường dẫn <code>/trang/{newSlug || "<slug>"}</code> ngoài website.
+        </p>
       </div>
 
       {!page ? <p>Đang tải...</p> : (
         <div className="max-w-3xl">
+          {activeSlug !== "home" &&
+            activeSlug !== "gioi-thieu" &&
+            activeSlug !== "ho-so-nang-luc" &&
+            activeSlug !== "lien-he" && (
+              <p className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
+                Trang này hiển thị tại: <code>/trang/{activeSlug}</code>
+              </p>
+            )}
+
           {page.blocks.map((block, idx) => (
             <div key={block._id || idx} className="relative">
               <div className="absolute -left-8 top-5 flex flex-col text-gray-400">
