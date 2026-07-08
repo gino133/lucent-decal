@@ -33,4 +33,11 @@ router.put("/:slug", protect, async (req, res) => {
   res.json(page);
 });
 
+// DELETE /api/pages/:slug (admin - xoá hẳn một trang tuỳ chỉnh)
+router.delete("/:slug", protect, async (req, res) => {
+  const page = await Page.findOneAndDelete({ slug: req.params.slug });
+  if (!page) return res.status(404).json({ message: "Không tìm thấy trang" });
+  res.json({ message: "Đã xoá trang" });
+});
+
 module.exports = router;
