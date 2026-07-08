@@ -14,12 +14,14 @@ export function setAuthToken(token) {
 }
 
 // ---- Hàm fetch dùng ở Server Components (SSR) ----
-async function fetchServer(path, opts = {}) {
+// revalidate: số giây Vercel được phép dùng lại dữ liệu cũ trước khi lấy mới từ backend.
+// Giúp trang tải nhanh hơn nhiều cho khách truy cập, đổi lại nội dung admin sửa
+// có thể mất tối đa `revalidate` giây mới hiển thị (thường vẫn rất nhanh).
+async function fetchServer(path, { revalidate = 60, ...opts } = {}) {
   try {
     const res = await fetch(`${API_URL}${path}`, {
       ...opts,
-      // Luôn lấy dữ liệu mới để admin sửa nội dung là thấy ngay
-      cache: "no-store",
+      next: { revalidate },
     });
     if (!res.ok) return null;
     return await res.json();
@@ -29,13 +31,13 @@ async function fetchServer(path, opts = {}) {
   }
 }
 
-export const getSettings = () => fetchServer("/settings");
-export const getMenu = (key = "main") => fetchServer(`/menu/${key}`);
-export const getPage = (slug) => fetchServer(`/pages/${slug}`);
-export const getProducts = (query = "") => fetchServer(`/products${query}`);
-export const getProduct = (slug) => fetchServer(`/products/${slug}`);
-export const getProjects = (query = "") => fetchServer(`/projects${query}`);
-export const getProject = (slug) => fetchServer(`/projects/${slug}`);
-export const getCategories = (type) => fetchServer(`/categories${type ? `?type=${type}` : ""}`);
+export const getSettings = () => fetchServer("/settings", { revalidate: 120 });
+export const getMenu = (key = "main") => fetchServer(`/menu/${key}`, { revalidate: 120 });
+export const getPage = (slug) => fetchServer(`/pages/${slug}`, { revalidate: 30 });
+export const getProducts = (query = "") => fetchServer(`/products${query}`, { revalidate: 30 });
+export const getProduct = (slug) => fetchServer(`/products/${slug}`, { revalidate: 30 });
+export const getProjects = (query = "") => fetchServer(`/projects${query}`, { revalidate: 30 });
+export const getProject = (slug) => fetchServer(`/projects/${slug}`, { revalidate: 30 });
+export const getCategories = (type) => fetchServer(`/categories${type ? `?type=${type}` : ""}`, { revalidate: 120 });
 
 export { API_URL };
