@@ -7,18 +7,32 @@ import ContactForm from "./ContactForm";
 
 // Mỗi block trong trang (được quản lý ở /admin/trang) sẽ render tương ứng ở đây.
 export default async function BlockRenderer({ blocks = [] }) {
-  const visible = blocks.filter((b) => b.visible !== false).sort((a, b) => a.order - b.order);
+  const visible = [...blocks]
+    .filter((b) => b && b.visible !== false)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
   return (
     <>
-      {visible.map((block) => (
-        <Block key={block._id} block={block} />
+      {visible.map((block, idx) => (
+        <SafeBlock key={block._id || idx} block={block} />
       ))}
     </>
   );
 }
 
+// Bọc an toàn: nếu 1 khối bị lỗi khi render (VD: ảnh hỏng, dữ liệu thiếu),
+// chỉ khối đó bị bỏ qua — không làm sập toàn bộ trang.
+// Lỗi thật sẽ được in ra Vercel Function Logs để dễ chẩn đoán.
+async function SafeBlock({ block }) {
+  try {
+    return await Block({ block });
+  } catch (err) {
+    console.error(`[BlockRenderer] Lỗi khi render khối "${block?.type}":`, err);
+    return null;
+  }
+}
+
 async function Block({ block }) {
-  const { type, data } = block;
+  const { type, data = {} } = block || {};
 
   if (type === "hero") {
     return (
