@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getProducts, getProjects } from "@/lib/api";
 import ProductCard from "./ProductCard";
 import ProjectCard from "./ProjectCard";
+import ContactForm from "./ContactForm";
 
 // Mỗi block trong trang (được quản lý ở /admin/trang) sẽ render tương ứng ở đây.
 export default async function BlockRenderer({ blocks = [] }) {
@@ -152,7 +153,6 @@ async function Block({ block }) {
   }
 
   if (type === "contactForm") {
-    const ContactForm = (await import("./ContactForm")).default;
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-12">
         <ContactForm />
