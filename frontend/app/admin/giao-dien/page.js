@@ -122,6 +122,19 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
+      <div className="bg-white rounded-xl p-8 space-y-6 mb-6">
+        <h2 className="font-bold text-lg">Chân trang (Footer)</h2>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Dòng bản quyền hiển thị cuối trang</label>
+          <input
+            value={settings.footerText}
+            onChange={(e) => update("footerText", e.target.value)}
+            className="w-full border rounded-lg px-4 py-2"
+            placeholder="© 2026 Tên công ty. Mọi quyền được bảo lưu."
+          />
+        </div>
+      </div>
+
       <button onClick={save} disabled={saving} className="bg-[#fae519] font-bold px-10 py-3 rounded-lg disabled:opacity-50">
         {saving ? "Đang lưu..." : "Lưu tất cả thay đổi"}
       </button>
