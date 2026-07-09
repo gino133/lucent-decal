@@ -4,7 +4,7 @@ const categorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
-    type: { type: String, enum: ["product", "project"], required: true },
+    type: { type: String, enum: ["product", "project", "post"], required: true },
     description: { type: String, default: "" },
     imageUrl: { type: String, default: "" },
     order: { type: Number, default: 0 },

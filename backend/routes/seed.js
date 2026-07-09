@@ -2,11 +2,7 @@ const express = require("express");
 const { runSeed } = require("../utils/seedData");
 const router = express.Router();
 
-// GET /api/seed?key=SEED_KEY&force=true
-// Dùng để khởi tạo dữ liệu mẫu + tài khoản admin từ xa qua trình duyệt,
-// dành cho trường hợp không có quyền truy cập Shell trên Render (gói Free).
-// Mặc định (force=false hoặc không truyền) sẽ KHÔNG ghi đè dữ liệu đã có,
-// chỉ tạo tài khoản admin nếu chưa tồn tại.
+// GET /api/seed?key=SEED_KEY&force=true&resetPassword=true
 router.get("/", async (req, res) => {
   try {
     if (!process.env.SEED_KEY) {

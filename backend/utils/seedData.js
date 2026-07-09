@@ -6,6 +6,7 @@ const Page = require("../models/Page");
 const Category = require("../models/Category");
 const Product = require("../models/Product");
 const Project = require("../models/Project");
+const Post = require("../models/Post");
 
 const IMG = (seed) => `https://picsum.photos/seed/${seed}/1200/800`;
 
@@ -70,8 +71,9 @@ async function runSeed({ force = false, resetPassword = false } = {}) {
       { label: "Giới thiệu", url: "/gioi-thieu", order: 1 },
       { label: "Sản phẩm", url: "/san-pham", order: 2 },
       { label: "Dự án", url: "/du-an", order: 3 },
-      { label: "Hồ sơ năng lực", url: "/ho-so-nang-luc", order: 4 },
-      { label: "Liên hệ", url: "/lien-he", order: 5 },
+      { label: "Tin tức", url: "/tin-tuc", order: 4 },
+      { label: "Hồ sơ năng lực", url: "/ho-so-nang-luc", order: 5 },
+      { label: "Liên hệ", url: "/lien-he", order: 6 },
     ],
   });
   await Menu.create({
@@ -109,6 +111,8 @@ async function runSeed({ force = false, resetPassword = false } = {}) {
   const catCachNhiet = await Category.create({ name: "Phim Cách Nhiệt", slug: "phim-cach-nhiet", type: "product" });
   const catVanPhong = await Category.create({ name: "Văn phòng", slug: "van-phong", type: "project" });
   const catThuongMai = await Category.create({ name: "Thương mại", slug: "thuong-mai", type: "project" });
+  const catTinTuc = await Category.create({ name: "Kiến thức", slug: "kien-thuc", type: "post" });
+  const catThongBao = await Category.create({ name: "Thông báo", slug: "thong-bao", type: "post" });
 
   // 5. Products
   await Product.deleteMany({});
@@ -169,7 +173,8 @@ async function runSeed({ force = false, resetPassword = false } = {}) {
       }},
       { type: "productsFeatured", order: 1, data: { title: "Sản phẩm nổi bật" } },
       { type: "projectsFeatured", order: 2, data: { title: "Dự án tiêu biểu" } },
-      { type: "cta", order: 3, data: {
+      { type: "postsFeatured", order: 3, data: { title: "Tin tức mới nhất" } },
+      { type: "cta", order: 4, data: {
         title: "Bạn đã sẵn sàng để thay đổi không gian?",
         description: "Liên hệ ngay để nhận khảo sát miễn phí và báo giá chi tiết cho giải pháp decal kính nghệ thuật chuyên nghiệp nhất.",
         ctaText: "Nhận tư vấn ngay", ctaLink: "/lien-he",
@@ -224,7 +229,44 @@ async function runSeed({ force = false, resetPassword = false } = {}) {
     blocks: [{ type: "richtext", order: 0, data: { html: "<p>Khi sử dụng website và dịch vụ của Lucent Glass, khách hàng đồng ý với các điều khoản về đặt hàng, thanh toán, bảo hành và khiếu nại được quy định tại đây. Vui lòng liên hệ bộ phận CSKH để biết thêm chi tiết.</p>" } }],
   });
 
-  log.push("Đã tạo dữ liệu mẫu: cài đặt, menu, 5 danh mục, 6 sản phẩm, 3 dự án, 6 trang nội dung.");
+  // 7. Posts (Tin tức)
+  await Post.deleteMany({});
+  const posts = [
+    {
+      title: "5 xu hướng decal kính kiến trúc năm 2026",
+      category: catTinTuc._id,
+      excerpt: "Khám phá những xu hướng decal kính đang được ưa chuộng nhất trong thiết kế văn phòng và không gian thương mại hiện đại.",
+      content: "<p>Decal kính không chỉ mang tính thẩm mỹ mà còn giúp tối ưu ánh sáng và sự riêng tư cho không gian làm việc. Dưới đây là những xu hướng nổi bật năm 2026...</p><h2>1. Hoạ tiết hình học tối giản</h2><p>Các mẫu hoạ tiết hình học đơn giản, tinh tế đang lên ngôi nhờ khả năng phù hợp với nhiều phong cách nội thất khác nhau.</p><h2>2. Decal mờ phun cát</h2><p>Mang lại cảm giác riêng tư mà vẫn giữ được ánh sáng tự nhiên xuyên qua không gian.</p>",
+      tags: ["xu-huong", "decal-kinh", "thiet-ke"],
+      isFeatured: true,
+    },
+    {
+      title: "Hướng dẫn bảo quản và vệ sinh decal kính đúng cách",
+      category: catTinTuc._id,
+      excerpt: "Những lưu ý quan trọng giúp decal kính của bạn luôn bền đẹp theo thời gian.",
+      content: "<p>Để decal kính giữ được độ bền và thẩm mỹ lâu dài, việc vệ sinh và bảo quản đúng cách là rất quan trọng...</p><h2>Dụng cụ vệ sinh phù hợp</h2><p>Nên sử dụng khăn mềm, dung dịch lau kính chuyên dụng, tránh các vật liệu có tính mài mòn.</p>",
+      tags: ["bao-quan", "meo-vat"],
+    },
+    {
+      title: "Lucent Glass khai trương showroom mới tại TP.HCM",
+      category: catThongBao._id,
+      excerpt: "Showroom mới với không gian trưng bày đa dạng các mẫu decal và kính nghệ thuật, chào đón quý khách đến tham quan.",
+      content: "<p>Chúng tôi vui mừng thông báo khai trương showroom mới tại Quận 1, TP.HCM, trưng bày đầy đủ các dòng sản phẩm decal kính và giải pháp kiến trúc kính mới nhất.</p>",
+      tags: ["thong-bao", "su-kien"],
+    },
+  ];
+  for (let i = 0; i < posts.length; i++) {
+    const p = posts[i];
+    await Post.create({
+      ...p,
+      slug: p.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-"),
+      coverImage: IMG("post" + i),
+      author: "Lucent Glass",
+      publishedAt: new Date(Date.now() - i * 86400000),
+    });
+  }
+
+  log.push("Đã tạo dữ liệu mẫu: cài đặt, menu, 7 danh mục, 6 sản phẩm, 3 dự án, 3 bài viết, 6 trang nội dung.");
   return log;
 }
 
