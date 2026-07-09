@@ -2,12 +2,18 @@ const express = require("express");
 const slugify = require("slugify");
 const Project = require("../models/Project");
 const { protect } = require("../middleware/auth");
+const { resolveCategoryId } = require("../utils/resolveCategoryFilter");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   const { category, featured, page = 1, limit = 12 } = req.query;
   const filter = { isPublished: true };
-  if (category) filter.category = category;
+
+  if (category) {
+    const categoryId = await resolveCategoryId(category);
+    if (!categoryId) return res.json({ items: [], total: 0, page: Number(page), pages: 0 });
+    filter.category = categoryId;
+  }
   if (featured) filter.isFeatured = true;
   const skip = (Number(page) - 1) * Number(limit);
   const [items, total] = await Promise.all([
