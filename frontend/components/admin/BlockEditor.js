@@ -6,7 +6,8 @@ const BLOCK_TYPE_LABELS = {
   gallery: "Thư viện ảnh", stats: "Số liệu nổi bật", testimonial: "Đánh giá khách hàng",
   cta: "Kêu gọi hành động", team: "Đội ngũ", faq: "Câu hỏi thường gặp",
   logos: "Logo đối tác", productsFeatured: "Sản phẩm nổi bật (tự động)",
-  projectsFeatured: "Dự án nổi bật (tự động)", contactForm: "Form liên hệ", map: "Bản đồ",
+  projectsFeatured: "Dự án nổi bật (tự động)", postsFeatured: "Tin tức nổi bật (tự động)",
+  contactForm: "Form liên hệ", map: "Bản đồ",
 };
 
 export default function BlockEditor({ block, onChange, onRemove }) {
@@ -88,7 +89,7 @@ export default function BlockEditor({ block, onChange, onRemove }) {
         <input placeholder="URL nhúng Google Maps (embed)" value={data.embedUrl || ""} onChange={(e) => updateData("embedUrl", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
       )}
 
-      {(block.type === "productsFeatured" || block.type === "projectsFeatured") && (
+      {(block.type === "productsFeatured" || block.type === "projectsFeatured" || block.type === "postsFeatured") && (
         <input placeholder="Tiêu đề khối" value={data.title || ""} onChange={(e) => updateData("title", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
       )}
 

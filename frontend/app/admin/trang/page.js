@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import BlockEditor from "@/components/admin/BlockEditor";
 
-// Các trang cố định luôn có link cứng ngoài website (không theo /trang/<slug>)
+// Các trang cố định luôn có link cứng ngoài website (không theo /<slug>)
 const FIXED_PAGE_LABELS = {
   home: "Trang chủ", "gioi-thieu": "Giới thiệu",
   "ho-so-nang-luc": "Hồ sơ năng lực", "lien-he": "Liên hệ",
@@ -11,7 +11,12 @@ const FIXED_PAGE_LABELS = {
 
 const BLOCK_TYPES = [
   "hero", "richtext", "imageText", "gallery", "stats", "cta",
-  "logos", "productsFeatured", "projectsFeatured", "contactForm", "map",
+  "logos", "productsFeatured", "projectsFeatured", "postsFeatured", "contactForm", "map",
+];
+
+const RESERVED_SLUGS = [
+  "gioi-thieu", "san-pham", "du-an", "ho-so-nang-luc", "lien-he",
+  "gio-hang", "checkout", "admin", "trang", "api",
 ];
 
 export default function AdminPagesPage() {
@@ -82,13 +87,14 @@ export default function AdminPagesPage() {
   }
 
   // Tạo trang mới: LƯU NGAY xuống database (không chỉ thêm tạm trên giao diện)
-  // để đường dẫn /trang/<slug> hoạt động ngay và trang xuất hiện lại sau khi F5.
+  // để đường dẫn /<slug> hoạt động ngay và trang xuất hiện lại sau khi F5.
   async function createCustomPage() {
     const slug = newSlug.trim()
       .toLowerCase()
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     if (!slug || !newTitle.trim()) return alert("Nhập đầy đủ tên và đường dẫn (slug) cho trang mới.");
+    if (RESERVED_SLUGS.includes(slug)) return alert(`"${slug}" là đường dẫn hệ thống đã dùng, vui lòng chọn slug khác.`);
     if (allPages.some((p) => p.slug === slug) || FIXED_PAGE_LABELS[slug]) {
       return alert("Slug này đã tồn tại, vui lòng chọn slug khác.");
     }
@@ -113,7 +119,7 @@ export default function AdminPagesPage() {
 
   async function deletePage(slug) {
     if (FIXED_PAGE_LABELS[slug]) return alert("Không thể xoá trang mặc định của hệ thống.");
-    if (!confirm(`Xoá hẳn trang "${allLabels(slug)}"? Đường dẫn /trang/${slug} sẽ ngừng hoạt động.`)) return;
+    if (!confirm(`Xoá hẳn trang "${allLabels(slug)}"? Đường dẫn /${slug} sẽ ngừng hoạt động.`)) return;
     await api.delete(`/pages/${slug}`);
     await loadPageList();
     if (activeSlug === slug) setActiveSlug("home");
@@ -170,7 +176,7 @@ export default function AdminPagesPage() {
           {creating ? "Đang tạo..." : "+ Tạo trang mới"}
         </button>
         <p className="text-xs text-gray-400 w-full">
-          Trang mới sẽ được lưu ngay và có đường dẫn <code>/trang/{newSlug || "<slug>"}</code> ngoài website.
+          Trang mới sẽ được lưu ngay và có đường dẫn <code>/{newSlug || "<slug>"}</code> ngoài website.
         </p>
       </div>
 
@@ -181,7 +187,7 @@ export default function AdminPagesPage() {
             activeSlug !== "ho-so-nang-luc" &&
             activeSlug !== "lien-he" && (
               <p className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
-                Trang này hiển thị tại: <code>/trang/{activeSlug}</code>
+                Trang này hiển thị tại: <code>/{activeSlug}</code>
               </p>
             )}
 

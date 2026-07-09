@@ -38,6 +38,8 @@ export const getProducts = (query = "") => fetchServer(`/products${query}`, { re
 export const getProduct = (slug) => fetchServer(`/products/${slug}`, { revalidate: 30 });
 export const getProjects = (query = "") => fetchServer(`/projects${query}`, { revalidate: 30 });
 export const getProject = (slug) => fetchServer(`/projects/${slug}`, { revalidate: 30 });
+export const getPosts = (query = "") => fetchServer(`/posts${query}`, { revalidate: 30 });
+export const getPost = (slug) => fetchServer(`/posts/${slug}`, { revalidate: 0 });
 export const getCategories = (type) => fetchServer(`/categories${type ? `?type=${type}` : ""}`, { revalidate: 120 });
 
 export { API_URL };

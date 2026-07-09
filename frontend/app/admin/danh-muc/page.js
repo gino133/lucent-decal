@@ -7,6 +7,7 @@ import ImageUploader from "@/components/admin/ImageUploader";
 const TABS = [
   { key: "product", label: "Danh mục Sản phẩm" },
   { key: "project", label: "Danh mục Dự án" },
+  { key: "post", label: "Danh mục Tin tức" },
 ];
 
 export default function AdminCategoriesPage() {
@@ -60,7 +61,7 @@ export default function AdminCategoriesPage() {
     load();
   }
 
-  const listPathByType = { product: "/admin/san-pham", project: "/admin/du-an" };
+  const listPathByType = { product: "/admin/san-pham", project: "/admin/du-an", post: "/admin/tin-tuc" };
 
   return (
     <div>

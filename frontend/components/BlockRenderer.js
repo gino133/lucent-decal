@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getProducts, getProjects } from "@/lib/api";
+import { getProducts, getProjects, getPosts } from "@/lib/api";
 import ProductCard from "./ProductCard";
 import ProjectCard from "./ProjectCard";
+import PostCard from "./PostCard";
 import ContactForm from "./ContactForm";
 
 // Mỗi block trong trang (được quản lý ở /admin/trang) sẽ render tương ứng ở đây.
@@ -144,6 +145,27 @@ async function Block({ block }) {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {products.map((p) => <ProductCard key={p._id} product={p} />)}
+        </div>
+      </section>
+    );
+  }
+
+  if (type === "postsFeatured") {
+    const res = await getPosts("?featured=true&limit=3");
+    let posts = res?.items || [];
+    if (posts.length === 0) {
+      const fallback = await getPosts("?limit=3");
+      posts = fallback?.items || [];
+    }
+    if (!posts.length) return null;
+    return (
+      <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-16">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold">{data.title || "Tin tức mới nhất"}</h2>
+          <Link href="/tin-tuc" className="text-sm font-semibold hover:text-secondary">Xem tất cả →</Link>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6">
+          {posts.map((p) => <PostCard key={p._id} post={p} />)}
         </div>
       </section>
     );

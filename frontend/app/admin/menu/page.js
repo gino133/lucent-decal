@@ -24,7 +24,7 @@ export default function AdminMenuPage() {
   );
 }
 
-// ---------- Menu chính: danh sách phẳng (label + url) ----------
+// ---------- Menu chính: danh sách các mục, mỗi mục có thể có menu con (dropdown) ----------
 function MainMenuEditor() {
   const [items, setItems] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -33,7 +33,7 @@ function MainMenuEditor() {
   async function load() {
     setLoading(true);
     const { data } = await api.get("/menu/main");
-    setItems((data.items || []).sort((a, b) => a.order - b.order));
+    setItems((data.items || []).sort((a, b) => a.order - b.order).map((it) => ({ ...it, children: it.children || [] })));
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
@@ -43,7 +43,7 @@ function MainMenuEditor() {
     next[idx] = { ...next[idx], [field]: value };
     setItems(next);
   }
-  function addItem() { setItems([...items, { label: "Trang mới", url: "/", order: items.length }]); }
+  function addItem() { setItems([...items, { label: "Trang mới", url: "/", order: items.length, children: [] }]); }
   function removeItem(idx) { setItems(items.filter((_, i) => i !== idx)); }
   function move(idx, dir) {
     const next = [...items];
@@ -51,6 +51,33 @@ function MainMenuEditor() {
     if (swap < 0 || swap >= next.length) return;
     [next[idx], next[swap]] = [next[swap], next[idx]];
     next.forEach((it, i) => (it.order = i));
+    setItems(next);
+  }
+
+  function updateChild(idx, cIdx, field, value) {
+    const next = [...items];
+    const children = [...next[idx].children];
+    children[cIdx] = { ...children[cIdx], [field]: value };
+    next[idx] = { ...next[idx], children };
+    setItems(next);
+  }
+  function addChild(idx) {
+    const next = [...items];
+    next[idx] = { ...next[idx], children: [...next[idx].children, { label: "Mục con mới", url: "/" }] };
+    setItems(next);
+  }
+  function removeChild(idx, cIdx) {
+    const next = [...items];
+    next[idx] = { ...next[idx], children: next[idx].children.filter((_, i) => i !== cIdx) };
+    setItems(next);
+  }
+  function moveChild(idx, cIdx, dir) {
+    const next = [...items];
+    const children = [...next[idx].children];
+    const swap = cIdx + dir;
+    if (swap < 0 || swap >= children.length) return;
+    [children[cIdx], children[swap]] = [children[swap], children[cIdx]];
+    next[idx] = { ...next[idx], children };
     setItems(next);
   }
 
@@ -64,21 +91,53 @@ function MainMenuEditor() {
   if (loading) return <p>Đang tải...</p>;
 
   return (
-    <div className="bg-white rounded-xl p-6 space-y-3 max-w-2xl">
+    <div className="max-w-3xl space-y-4">
+      <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3">
+        Mỗi mục có thể thêm <strong>menu con</strong> — khi có menu con, mục đó sẽ hiện dạng dropdown (hổ trợ tối đa 2 cấp: mục cha → mục con).
+      </p>
+
       {items.map((item, idx) => (
-        <div key={idx} className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <button onClick={() => move(idx, -1)} className="text-gray-400 hover:text-black text-xs">▲</button>
-            <button onClick={() => move(idx, 1)} className="text-gray-400 hover:text-black text-xs">▼</button>
+        <div key={idx} className="bg-white rounded-xl p-5 border border-gray-200">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex flex-col">
+              <button onClick={() => move(idx, -1)} className="text-gray-400 hover:text-black text-xs">▲</button>
+              <button onClick={() => move(idx, 1)} className="text-gray-400 hover:text-black text-xs">▼</button>
+            </div>
+            <input value={item.label} onChange={(e) => updateItem(idx, "label", e.target.value)} placeholder="Tên hiển thị" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
+            <input value={item.url} onChange={(e) => updateItem(idx, "url", e.target.value)} placeholder="/duong-dan" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
+            <button onClick={() => removeItem(idx)} className="text-red-500 px-2">×</button>
           </div>
-          <input value={item.label} onChange={(e) => updateItem(idx, "label", e.target.value)} placeholder="Tên hiển thị" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
-          <input value={item.url} onChange={(e) => updateItem(idx, "url", e.target.value)} placeholder="/duong-dan" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
-          <button onClick={() => removeItem(idx)} className="text-red-500 px-2">×</button>
+
+          <div className="pl-6 space-y-2">
+            {item.children.map((child, cIdx) => (
+              <div key={cIdx} className="flex items-center gap-2">
+                <div className="flex flex-col">
+                  <button onClick={() => moveChild(idx, cIdx, -1)} className="text-gray-300 hover:text-black text-[10px]">▲</button>
+                  <button onClick={() => moveChild(idx, cIdx, 1)} className="text-gray-300 hover:text-black text-[10px]">▼</button>
+                </div>
+                <input
+                  value={child.label}
+                  onChange={(e) => updateChild(idx, cIdx, "label", e.target.value)}
+                  placeholder="Tên mục con"
+                  className="flex-1 border rounded-lg px-3 py-2 text-xs"
+                />
+                <input
+                  value={child.url}
+                  onChange={(e) => updateChild(idx, cIdx, "url", e.target.value)}
+                  placeholder="/duong-dan"
+                  className="flex-1 border rounded-lg px-3 py-2 text-xs"
+                />
+                <button onClick={() => removeChild(idx, cIdx)} className="text-red-500 px-2">×</button>
+              </div>
+            ))}
+            <button onClick={() => addChild(idx)} className="text-xs text-blue-600 font-semibold">+ Thêm mục con</button>
+          </div>
         </div>
       ))}
+
       <button onClick={addItem} className="text-sm text-blue-600 font-semibold">+ Thêm mục menu</button>
 
-      <div className="pt-4">
+      <div className="pt-2">
         <button onClick={save} disabled={saving} className="bg-[#fae519] font-bold px-8 py-3 rounded-lg disabled:opacity-50">
           {saving ? "Đang lưu..." : "Lưu menu chính"}
         </button>
