@@ -2,6 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function ProductCard({ product }) {
+  const hasVariants = product.variants?.length > 0;
+  const minPrice = hasVariants ? Math.min(...product.variants.map((v) => v.price)) : product.price;
+
   return (
     <Link
       href={`/san-pham/${product.slug}`}
@@ -28,8 +31,9 @@ export default function ProductCard({ product }) {
         <p className="text-sm text-on-background/60 mb-2 line-clamp-2">{product.shortDescription}</p>
         <div className="flex items-center justify-between">
           <span className="font-bold text-sm">
-            {product.price?.toLocaleString("vi-VN")}đ
-            <span className="text-xs font-normal text-on-background/50"> /{product.unit}</span>
+            {hasVariants && <span className="text-xs font-normal text-on-background/50">Từ </span>}
+            {minPrice?.toLocaleString("vi-VN")}đ
+            {!hasVariants && product.unit && <span className="text-xs font-normal text-on-background/50"> /{product.unit}</span>}
           </span>
           <span className="material-symbols-outlined text-lg">arrow_forward</span>
         </div>
