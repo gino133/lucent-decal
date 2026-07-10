@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getProducts, getCategories } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
+import CategoryScrollBar from "@/components/CategoryScrollBar";
 
 export default async function ProductsPage({ searchParams }) {
   const category = searchParams?.category || "";
@@ -18,23 +19,7 @@ export default async function ProductsPage({ searchParams }) {
       <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">Sản phẩm</h1>
       <p className="text-on-background/60 mb-8">Kiến Trúc Hoàn Hảo — Giải pháp decal & kính chuyên nghiệp.</p>
 
-      <div className="flex gap-3 flex-wrap mb-10">
-        <Link
-          href="/san-pham"
-          className={`px-4 py-2 rounded-full text-sm font-semibold border ${!category ? "bg-secondary border-secondary" : "border-on-background/20"}`}
-        >
-          Tất cả
-        </Link>
-        {(categories || []).map((c) => (
-          <Link
-            key={c._id}
-            href={`/san-pham?category=${c.slug}`}
-            className={`px-4 py-2 rounded-full text-sm font-semibold border ${category === c.slug ? "bg-secondary border-secondary" : "border-on-background/20"}`}
-          >
-            {c.name}
-          </Link>
-        ))}
-      </div>
+      <CategoryScrollBar categories={categories} basePath="/san-pham" activeSlug={category} />
 
       {products.length === 0 ? (
         <p className="text-on-background/50 text-center py-20">Chưa có sản phẩm nào.</p>
