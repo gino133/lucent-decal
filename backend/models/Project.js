@@ -10,6 +10,14 @@ const projectSchema = new mongoose.Schema(
     year: { type: String, default: "" },
     coverImage: { type: String, default: "" },
     images: [{ type: String }],
+    // Cặp ảnh so sánh Trước/Sau, hiển thị dạng thanh trượt kéo được ở trang chi tiết dự án
+    beforeAfterImages: [
+      {
+        before: { type: String, required: true },
+        after: { type: String, required: true },
+        caption: { type: String, default: "" },
+      },
+    ],
     shortDescription: { type: String, default: "" },
     description: { type: String, default: "" },
     isFeatured: { type: Boolean, default: false },
