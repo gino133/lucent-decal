@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getProduct, getProducts } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
-import AddToCartBox from "@/components/AddToCartBox";
+import ProductPurchasePanel from "@/components/ProductPurchasePanel";
 import { notFound } from "next/navigation";
 
 export default async function ProductDetailPage({ params }) {
@@ -53,12 +53,8 @@ export default async function ProductDetailPage({ params }) {
           )}
           <h1 className="font-heading text-3xl md:text-4xl font-bold mt-2 mb-4">{product.name}</h1>
           <p className="text-on-background/70 mb-6">{product.shortDescription}</p>
-          <div className="text-2xl font-bold mb-6">
-            {product.price?.toLocaleString("vi-VN")}đ
-            <span className="text-sm font-normal text-on-background/50"> / {product.unit}</span>
-          </div>
 
-          <AddToCartBox product={product} />
+          <ProductPurchasePanel product={product} />
 
           {product.specs?.length > 0 && (
             <div className="mt-10">
