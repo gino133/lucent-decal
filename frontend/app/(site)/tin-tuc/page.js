@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPosts, getCategories } from "@/lib/api";
 import PostCard from "@/components/PostCard";
+import CategoryScrollBar from "@/components/CategoryScrollBar";
 
 export default async function BlogListPage({ searchParams }) {
   const category = searchParams?.category || "";
@@ -16,27 +17,9 @@ export default async function BlogListPage({ searchParams }) {
   return (
     <div className="pt-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto pb-20">
       <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">Tin tức</h1>
-      <p className="text-on-background/60 mb-8">Cập nhật thông tin, kiến thức và dự án mới nhất từ Lucent Glass.</p>
+      <p className="text-on-background/60 mb-8">Cập nhật thông tin, kiến thức và dự án mới nhất từ Lucent Decal.</p>
 
-      {categories?.length > 0 && (
-        <div className="flex gap-3 flex-wrap mb-10">
-          <Link
-            href="/tin-tuc"
-            className={`px-4 py-2 rounded-full text-sm font-semibold border ${!category ? "bg-secondary border-secondary" : "border-on-background/20"}`}
-          >
-            Tất cả
-          </Link>
-          {categories.map((c) => (
-            <Link
-              key={c._id}
-              href={`/tin-tuc?category=${c.slug}`}
-              className={`px-4 py-2 rounded-full text-sm font-semibold border ${category === c.slug ? "bg-secondary border-secondary" : "border-on-background/20"}`}
-            >
-              {c.name}
-            </Link>
-          ))}
-        </div>
-      )}
+      <CategoryScrollBar categories={categories} basePath="/tin-tuc" activeSlug={category} />
 
       {posts.length === 0 ? (
         <p className="text-on-background/50 text-center py-20">Chưa có bài viết nào.</p>
