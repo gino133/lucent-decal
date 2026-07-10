@@ -29,6 +29,8 @@ app.use("/api/orders", require("./routes/orders"));
 app.use("/api/contacts", require("./routes/contacts"));
 app.use("/api/upload", require("./routes/upload"));
 app.use("/api/seed", require("./routes/seed"));
+app.use("/api/posts", require("./routes/posts"));
+app.use("/api/comments", require("./routes/comments"));
 
 // 404
 app.use((req, res) => res.status(404).json({ message: "Không tìm thấy endpoint" }));
