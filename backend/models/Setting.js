@@ -41,6 +41,8 @@ const settingSchema = new mongoose.Schema(
       metaTitle: { type: String, default: "" },
       metaDescription: { type: String, default: "" },
       ogImage: { type: String, default: "" },
+      siteUrl: { type: String, default: "" }, // vd: https://lucent-decal.vercel.app — dùng cho Schema.org & canonical URL
+      priceRange: { type: String, default: "$$" }, // dùng cho Local Business Schema, vd: "$", "$$", "$$$"
     },
 
     footerText: { type: String, default: "© 2026 Lucent Glass. Kiến Trúc Hoàn Hảo." },
