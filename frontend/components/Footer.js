@@ -28,7 +28,7 @@ export default function Footer({ settings, footerMenu }) {
             <ul className="space-y-3">
               {group.children?.map((child) => (
                 <li key={child.url}>
-                  <Link href={child.url} className="text-sm text-on-background/70 hover:text-secondary transition-colors">
+                  <Link href={child.url} className="text-sm text-on-background/70 hover:text-secondary underline decoration-on-background/20 hover:decoration-secondary underline-offset-4 transition-colors">
                     {child.label}
                   </Link>
                 </li>

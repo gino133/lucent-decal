@@ -123,6 +123,66 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="bg-white rounded-xl p-8 space-y-6 mb-6">
+        <h2 className="font-bold text-lg">SEO — Tiêu đề & Mô tả trang</h2>
+        <p className="text-xs text-gray-500 -mt-4">
+          Nội dung này hiển thị trên tab trình duyệt, kết quả tìm kiếm Google và khi chia sẻ link lên mạng xã hội.
+        </p>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Thẻ tiêu đề (&lt;title&gt;)</label>
+          <input
+            value={settings.seo?.metaTitle || ""}
+            onChange={(e) => update("seo.metaTitle", e.target.value)}
+            placeholder="VD: Lucent Decal - Thi Công Film Dán Nội Thất Cao Cấp Tại TP.HCM"
+            className="w-full border rounded-lg px-4 py-2"
+            maxLength={70}
+          />
+          <p className="text-xs text-gray-400 mt-1">{(settings.seo?.metaTitle || "").length}/70 ký tự (nên dưới 60-70 để không bị cắt trên Google)</p>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Thẻ mô tả (&lt;meta name="description"&gt;)</label>
+          <textarea
+            rows={3}
+            value={settings.seo?.metaDescription || ""}
+            onChange={(e) => update("seo.metaDescription", e.target.value)}
+            placeholder="Mô tả ngắn gọn, hấp dẫn về website — hiển thị bên dưới tiêu đề trên kết quả tìm kiếm Google."
+            className="w-full border rounded-lg px-4 py-2"
+            maxLength={160}
+          />
+          <p className="text-xs text-gray-400 mt-1">{(settings.seo?.metaDescription || "").length}/160 ký tự</p>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Ảnh chia sẻ mạng xã hội (OG Image)</label>
+          <ImageUploader value={settings.seo?.ogImage} onChange={(v) => update("seo.ogImage", v)} />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold mb-2">URL website chính thức</label>
+            <input
+              value={settings.seo?.siteUrl || ""}
+              onChange={(e) => update("seo.siteUrl", e.target.value)}
+              placeholder="https://lucent-decal.vercel.app"
+              className="w-full border rounded-lg px-4 py-2"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Dùng cho Schema.org và thẻ canonical. <strong>Phải bắt đầu bằng https://</strong>, vd: https://lucent-decal.vercel.app (không thêm dấu / ở cuối).
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Mức giá (Schema doanh nghiệp)</label>
+            <select
+              value={settings.seo?.priceRange || "$$"}
+              onChange={(e) => update("seo.priceRange", e.target.value)}
+              className="w-full border rounded-lg px-4 py-2"
+            >
+              <option value="$">$ — Bình dân</option>
+              <option value="$$">$$ — Trung bình</option>
+              <option value="$$$">$$$ — Cao cấp</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl p-8 space-y-6 mb-6">
         <h2 className="font-bold text-lg">Chân trang (Footer)</h2>
         <div>
           <label className="block text-sm font-semibold mb-2">Dòng bản quyền hiển thị cuối trang</label>

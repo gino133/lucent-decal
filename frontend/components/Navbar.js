@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 
 export default function Navbar({ settings, menu }) {
@@ -8,22 +8,46 @@ export default function Navbar({ settings, menu }) {
   const [mobileExpanded, setMobileExpanded] = useState(null);
   const { totalQuantity } = useCart();
   const items = menu?.items?.sort((a, b) => a.order - b.order) || [];
+  const drawerRef = useRef(null);
+
+  // Đóng menu mobile/tablet khi bấm ra ngoài vùng drawer (không bắt buộc bấm nút X)
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e) {
+      if (drawerRef.current && !drawerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [open]);
+
+  // Khoá cuộn trang nền khi drawer mobile đang mở
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-on-background/10">
       <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
-        <Link href="/" className="font-heading font-bold text-xl md:text-2xl tracking-tight">
+        <Link href="/" className="font-heading font-bold text-xl md:text-2xl tracking-tight shrink-0">
           {settings?.siteName || "Lucent Glass"}
         </Link>
 
-        <div className="hidden md:flex items-center space-x-8">
+        {/* Menu ngang đầy đủ — chỉ hiện từ desktop rộng (lg) trở lên để tránh tràn dòng ở tablet */}
+        <div className="hidden lg:flex items-center gap-1">
           {items.map((item) => {
             const hasChildren = item.children?.length > 0;
             return (
               <div key={item._id || item.url} className="relative group">
                 <Link
                   href={item.url}
-                  className="flex items-center gap-1 font-body text-sm font-semibold tracking-wide text-on-background/80 hover:text-secondary transition-colors py-2"
+                  className="flex items-center gap-1 -mx-1 px-4 py-3 rounded-lg font-body text-sm font-semibold tracking-wide text-on-background/80 hover:text-secondary hover:bg-surface/60 transition-colors"
                 >
                   {item.label}
                   {hasChildren && <span className="material-symbols-outlined text-base">expand_more</span>}
@@ -31,7 +55,7 @@ export default function Navbar({ settings, menu }) {
 
                 {hasChildren && (
                   <div className="absolute left-0 top-full pt-1 hidden group-hover:block">
-                    <div className="bg-background border border-on-background/10 rounded-xl shadow-lg py-2 min-w-[200px]">
+                    <div className="bg-background border border-on-background/10 rounded-xl shadow-lg py-2 min-w-[220px]">
                       {item.children
                         .slice()
                         .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -39,7 +63,7 @@ export default function Navbar({ settings, menu }) {
                           <Link
                             key={child.url}
                             href={child.url}
-                            className="block px-4 py-2 text-sm font-medium hover:bg-surface hover:text-secondary transition-colors"
+                            className="block px-4 py-2.5 text-sm font-medium hover:bg-surface hover:text-secondary transition-colors"
                           >
                             {child.label}
                           </Link>
@@ -52,23 +76,40 @@ export default function Navbar({ settings, menu }) {
           })}
         </div>
 
-        <div className="flex items-center space-x-4">
-          <Link href="/gio-hang" className="relative">
+        <div className="flex items-center gap-2">
+          <Link href="/gio-hang" className="relative p-2 -m-2" aria-label="Giỏ hàng">
             <span className="material-symbols-outlined align-middle">shopping_cart</span>
             {totalQuantity > 0 && (
-              <span className="absolute -top-2 -right-2 bg-secondary text-on-background text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute top-0 right-0 bg-secondary text-on-background text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                 {totalQuantity}
               </span>
             )}
           </Link>
-          <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
-            <span className="material-symbols-outlined">{open ? "close" : "menu"}</span>
+          {/* Nút mở menu — hiện ở cả mobile lẫn tablet (dưới lg) */}
+          <button className="lg:hidden p-2 -m-1" onClick={() => setOpen(true)} aria-label="Mở menu">
+            <span className="material-symbols-outlined">menu</span>
           </button>
         </div>
       </div>
 
-      {open && (
-        <div className="md:hidden flex flex-col px-margin-mobile pb-6 space-y-1 bg-background border-t border-on-background/10">
+      {/* Nền mờ phía sau drawer */}
+      {open && <div className="lg:hidden fixed inset-0 z-40 bg-black/50" aria-hidden="true" />}
+
+      {/* Drawer menu trượt từ bên phải — dùng chung cho cả mobile và tablet */}
+      <div
+        ref={drawerRef}
+        className={`lg:hidden fixed top-0 right-0 h-screen w-80 max-w-[85vw] z-50 bg-background shadow-2xl
+          transition-transform duration-300 ease-in-out overflow-y-auto
+          ${open ? "translate-x-0" : "translate-x-full"}`}
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b border-on-background/10">
+          <span className="font-heading font-bold text-lg">Menu</span>
+          <button onClick={() => setOpen(false)} className="p-2 -m-2" aria-label="Đóng menu">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div className="flex flex-col px-4 py-4">
           {items.map((item) => {
             const hasChildren = item.children?.length > 0;
             const expanded = mobileExpanded === (item._id || item.url);
@@ -78,14 +119,14 @@ export default function Navbar({ settings, menu }) {
                   <Link
                     href={item.url}
                     onClick={() => setOpen(false)}
-                    className="font-body text-base font-semibold py-3 flex-1"
+                    className="font-body text-base font-semibold py-3.5 px-2 flex-1 rounded-lg hover:bg-surface"
                   >
                     {item.label}
                   </Link>
                   {hasChildren && (
                     <button
                       onClick={() => setMobileExpanded(expanded ? null : item._id || item.url)}
-                      className="p-3"
+                      className="p-3.5 -m-1 rounded-lg hover:bg-surface"
                       aria-label="Mở menu con"
                     >
                       <span className="material-symbols-outlined">{expanded ? "expand_less" : "expand_more"}</span>
@@ -93,7 +134,7 @@ export default function Navbar({ settings, menu }) {
                   )}
                 </div>
                 {hasChildren && expanded && (
-                  <div className="pl-4 pb-2 space-y-1 border-l border-on-background/10 ml-1">
+                  <div className="pl-4 pb-2 space-y-1 border-l border-on-background/10 ml-3">
                     {item.children
                       .slice()
                       .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -102,7 +143,7 @@ export default function Navbar({ settings, menu }) {
                           key={child.url}
                           href={child.url}
                           onClick={() => setOpen(false)}
-                          className="block font-body text-sm py-2 text-on-background/70"
+                          className="block font-body text-sm py-2.5 px-3 -mx-3 rounded-lg text-on-background/70 hover:bg-surface"
                         >
                           {child.label}
                         </Link>
@@ -113,7 +154,7 @@ export default function Navbar({ settings, menu }) {
             );
           })}
         </div>
-      )}
+      </div>
     </nav>
   );
 }
