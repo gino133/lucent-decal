@@ -3,59 +3,68 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
+const SOURCES = [
+  { key: "products", label: "Sản phẩm", href: "/admin/san-pham", icon: "inventory_2", url: "/products/admin/all", count: (d) => d.length },
+  { key: "projects", label: "Dự án", href: "/admin/du-an", icon: "apartment", url: "/projects/admin/all", count: (d) => d.length },
+  { key: "posts", label: "Tin tức", href: "/admin/tin-tuc", icon: "newspaper", url: "/posts/admin/all", count: (d) => d.length },
+  { key: "pendingComments", label: "Bình luận chờ duyệt", href: "/admin/binh-luan", icon: "forum", url: "/comments", count: (d) => d.filter((c) => c.status === "pending").length },
+  { key: "categories", label: "Danh mục", href: "/admin/danh-muc", icon: "category", url: "/categories", count: (d) => d.length },
+  { key: "orders", label: "Đơn hàng", href: "/admin/don-hang", icon: "receipt_long", url: "/orders", count: (d) => d.length },
+  { key: "contacts", label: "Liên hệ chưa đọc", href: "/admin/lien-he", icon: "mail", url: "/contacts", count: (d) => d.filter((c) => c.status === "new").length },
+];
+
 export default function DashboardPage() {
-  const [stats, setStats] = useState({ products: 0, projects: 0, posts: 0, orders: 0, contacts: 0, categories: 0, pendingComments: 0 });
+  const [stats, setStats] = useState({});
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      try {
-        const [p, pr, po, o, c, cat, cm] = await Promise.all([
-          api.get("/products/admin/all"),
-          api.get("/projects/admin/all"),
-          api.get("/posts/admin/all"),
-          api.get("/orders"),
-          api.get("/contacts"),
-          api.get("/categories"),
-          api.get("/comments"),
-        ]);
-        setStats({
-          products: p.data.length,
-          projects: pr.data.length,
-          posts: po.data.length,
-          orders: o.data.length,
-          contacts: c.data.filter((c) => c.status === "new").length,
-          categories: cat.data.length,
-          pendingComments: cm.data.filter((c) => c.status === "pending").length,
-        });
-      } catch (e) {}
+      // Dùng allSettled thay vì all: 1 API lỗi sẽ không làm mất số liệu của các API còn lại
+      const results = await Promise.allSettled(SOURCES.map((s) => api.get(s.url)));
+
+      const nextStats = {};
+      const nextErrors = {};
+      results.forEach((res, i) => {
+        const source = SOURCES[i];
+        if (res.status === "fulfilled") {
+          nextStats[source.key] = source.count(res.value.data);
+        } else {
+          nextErrors[source.key] = true;
+          console.error(`Lỗi tải số liệu "${source.label}":`, res.reason);
+        }
+      });
+      setStats(nextStats);
+      setErrors(nextErrors);
+      setLoading(false);
     }
     load();
   }, []);
 
-  const cards = [
-    { label: "Sản phẩm", value: stats.products, href: "/admin/san-pham", icon: "inventory_2" },
-    { label: "Dự án", value: stats.projects, href: "/admin/du-an", icon: "apartment" },
-    { label: "Tin tức", value: stats.posts, href: "/admin/tin-tuc", icon: "newspaper" },
-    { label: "Bình luận chờ duyệt", value: stats.pendingComments, href: "/admin/binh-luan", icon: "forum" },
-    { label: "Danh mục", value: stats.categories, href: "/admin/danh-muc", icon: "category" },
-    { label: "Đơn hàng", value: stats.orders, href: "/admin/don-hang", icon: "receipt_long" },
-    { label: "Liên hệ chưa đọc", value: stats.contacts, href: "/admin/lien-he", icon: "mail" },
-  ];
-
   return (
     <div>
       <h1 className="text-2xl font-bold mb-8">Tổng quan</h1>
-      <div className="grid grid-cols-4 gap-6">
-        {cards.map((c) => (
-          <Link key={c.href} href={c.href} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <span className="material-symbols-outlined text-3xl text-[#fae519]">{c.icon}</span>
-            <div className="text-3xl font-bold mt-3">{c.value}</div>
-            <div className="text-sm text-gray-500">{c.label}</div>
+
+      {Object.keys(errors).length > 0 && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-4 mb-6">
+          Không tải được số liệu: {SOURCES.filter((s) => errors[s.key]).map((s) => s.label).join(", ")}.
+          Có thể do API chưa deploy xong hoặc phiên đăng nhập hết hạn — thử tải lại trang.
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        {SOURCES.map((s) => (
+          <Link key={s.href} href={s.href} className="bg-white rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow">
+            <span className="material-symbols-outlined text-2xl md:text-3xl text-[#fae519]">{s.icon}</span>
+            <div className="text-2xl md:text-3xl font-bold mt-2 md:mt-3">
+              {loading ? "…" : errors[s.key] ? "—" : stats[s.key]}
+            </div>
+            <div className="text-xs md:text-sm text-gray-500">{s.label}</div>
           </Link>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl p-8 mt-8">
+      <div className="bg-white rounded-xl p-6 md:p-8 mt-8">
         <h2 className="font-bold text-lg mb-2">Hướng dẫn nhanh</h2>
         <ul className="text-sm text-gray-600 space-y-2 list-disc pl-5">
           <li>Vào <strong>Giao diện & Cài đặt</strong> để đổi logo, màu sắc, font chữ, thông tin liên hệ.</li>

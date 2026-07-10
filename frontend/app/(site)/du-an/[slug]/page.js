@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getProject } from "@/lib/api";
+import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import { notFound } from "next/navigation";
 
 export default async function ProjectDetailPage({ params }) {
@@ -42,6 +43,18 @@ export default async function ProjectDetailPage({ params }) {
 
         {project.description && (
           <div className="rich-content max-w-3xl mb-12" dangerouslySetInnerHTML={{ __html: project.description }} />
+        )}
+
+        {project.beforeAfterImages?.length > 0 && (
+          <div className="mb-12">
+            <h2 className="font-heading text-2xl font-bold mb-6">So sánh Trước & Sau</h2>
+            <p className="text-sm text-on-background/50 mb-6">Kéo thanh trượt để xem sự khác biệt.</p>
+            <div className="grid md:grid-cols-2 gap-8">
+              {project.beforeAfterImages.map((pair, i) => (
+                <BeforeAfterSlider key={i} before={pair.before} after={pair.after} caption={pair.caption} />
+              ))}
+            </div>
+          </div>
         )}
 
         {project.images?.length > 0 && (

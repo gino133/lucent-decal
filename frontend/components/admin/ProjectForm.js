@@ -12,7 +12,7 @@ export default function ProjectForm({ initial, projectId }) {
     initial || {
       name: "", category: "", client: "", location: "", year: "",
       coverImage: "", images: [], shortDescription: "", description: "",
-      isFeatured: false, isPublished: true,
+      beforeAfterImages: [], isFeatured: false, isPublished: true,
     }
   );
   const [saving, setSaving] = useState(false);
@@ -23,11 +23,28 @@ export default function ProjectForm({ initial, projectId }) {
 
   function update(field, value) { setForm((f) => ({ ...f, [field]: value })); }
 
+  function updateBA(idx, field, value) {
+    const next = [...(form.beforeAfterImages || [])];
+    next[idx] = { ...next[idx], [field]: value };
+    update("beforeAfterImages", next);
+  }
+  function addBA() {
+    update("beforeAfterImages", [...(form.beforeAfterImages || []), { before: "", after: "", caption: "" }]);
+  }
+  function removeBA(idx) {
+    update("beforeAfterImages", (form.beforeAfterImages || []).filter((_, i) => i !== idx));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form, category: form.category?._id || form.category || undefined };
+      const payload = {
+        ...form,
+        category: form.category?._id || form.category || undefined,
+        // Bỏ qua các cặp ảnh Trước/Sau chưa nhập đủ 2 ảnh, tránh lỗi hiển thị ngoài site
+        beforeAfterImages: (form.beforeAfterImages || []).filter((p) => p.before && p.after),
+      };
       if (projectId) await api.put(`/projects/${projectId}`, payload);
       else await api.post("/projects", payload);
       router.push("/admin/du-an");
@@ -81,6 +98,41 @@ export default function ProjectForm({ initial, projectId }) {
       <div>
         <label className="block text-sm font-semibold mb-2">Thư viện ảnh dự án</label>
         <ImageUploader multiple value={form.images} onChange={(v) => update("images", v)} />
+      </div>
+
+      <div className="border-t pt-6">
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm font-semibold">Ảnh so sánh Trước / Sau</label>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">
+          Khách xem sẽ kéo được thanh trượt để so sánh trực quan. Có thể thêm nhiều cặp (VD: từng phòng/khu vực khác nhau).
+        </p>
+
+        {(form.beforeAfterImages || []).map((pair, idx) => (
+          <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-xs font-semibold text-gray-500">Cặp ảnh #{idx + 1}</span>
+              <button type="button" onClick={() => removeBA(idx)} className="text-red-500 text-xs font-semibold">Xoá cặp ảnh</button>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div>
+                <label className="block text-xs font-semibold mb-2">Ảnh TRƯỚC *</label>
+                <ImageUploader value={pair.before} onChange={(v) => updateBA(idx, "before", v)} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-2">Ảnh SAU *</label>
+                <ImageUploader value={pair.after} onChange={(v) => updateBA(idx, "after", v)} />
+              </div>
+            </div>
+            <input
+              placeholder="Chú thích (VD: Phòng khách - trước và sau khi dán decal)"
+              value={pair.caption}
+              onChange={(e) => updateBA(idx, "caption", e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+        ))}
+        <button type="button" onClick={addBA} className="text-sm text-blue-600 font-semibold">+ Thêm cặp ảnh Trước/Sau</button>
       </div>
 
       <div>

@@ -5,8 +5,8 @@ export default function Footer({ settings, footerMenu }) {
 
   return (
     <footer className="w-full py-16 px-margin-mobile md:px-margin-desktop bg-surface border-t border-on-background/10 mt-24">
-      <div className="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-4 gap-gutter">
-        <div>
+      <div className="max-w-container-max mx-auto grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-10 md:gap-y-0">
+        <div className="col-span-2 md:col-span-1">
           <div className="font-heading text-lg font-bold mb-4 uppercase">{settings?.siteName || "Lucent Glass"}</div>
           <p className="text-sm text-on-background/70 mb-4">{settings?.tagline}</p>
           <div className="flex space-x-4 text-on-background/70">
@@ -23,12 +23,12 @@ export default function Footer({ settings, footerMenu }) {
         </div>
 
         {items.map((group) => (
-          <div key={group._id || group.label}>
+          <div key={group._id || group.label} className="col-span-1">
             <h4 className="font-body text-sm font-bold mb-4 uppercase tracking-wider">{group.label}</h4>
             <ul className="space-y-3">
               {group.children?.map((child) => (
                 <li key={child.url}>
-                  <Link href={child.url} className="text-sm text-on-background/70 hover:text-secondary underline decoration-on-background/20 hover:decoration-secondary underline-offset-4 transition-colors">
+                  <Link href={child.url} className="text-sm text-on-background/70 hover:text-secondary transition-colors">
                     {child.label}
                   </Link>
                 </li>
@@ -37,7 +37,7 @@ export default function Footer({ settings, footerMenu }) {
           </div>
         ))}
 
-        <div>
+        <div className="col-span-2 md:col-span-1">
           <h4 className="font-body text-sm font-bold mb-4 uppercase tracking-wider">Liên hệ</h4>
           <p className="text-sm text-on-background/70 mb-2">{settings?.contact?.address}</p>
           <p className="text-sm text-on-background/70 mb-2">{settings?.contact?.phone}</p>
