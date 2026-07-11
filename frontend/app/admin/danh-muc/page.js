@@ -83,42 +83,65 @@ export default function AdminCategoriesPage() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 bg-white rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left">
-              <tr>
-                <th className="p-4">Ảnh</th>
-                <th className="p-4">Tên danh mục</th>
-                <th className="p-4">Đường dẫn (slug)</th>
-                <th className="p-4"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && <tr><td className="p-4" colSpan={4}>Đang tải...</td></tr>}
-              {!loading && categories.length === 0 && (
-                <tr><td className="p-4 text-gray-400" colSpan={4}>Chưa có danh mục nào.</td></tr>
-              )}
-              {categories.map((c) => (
-                <tr key={c._id} className="border-t border-gray-100">
-                  <td className="p-4">
-                    <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-100">
-                      {c.imageUrl && <img src={c.imageUrl} alt="" className="w-full h-full object-cover" />}
-                    </div>
-                  </td>
-                  <td className="p-4 font-medium">{c.name}</td>
-                  <td className="p-4 text-gray-500">
-                    <Link href={`${listPathByType[tab]}?category=${c.slug}`} className="hover:underline" title="Xem danh sách thuộc danh mục này trong admin">
-                      /{c.slug}
-                    </Link>
-                  </td>
-                  <td className="p-4 text-right space-x-3">
-                    <button onClick={() => startEdit(c)} className="text-blue-600 font-semibold">Sửa</button>
-                    <button onClick={() => handleDelete(c._id)} className="text-red-500 font-semibold">Xoá</button>
-                  </td>
+        <div className="md:col-span-2">
+          {loading && <p className="text-gray-400">Đang tải...</p>}
+          {!loading && categories.length === 0 && <p className="text-gray-400">Chưa có danh mục nào.</p>}
+
+          {/* Desktop/tablet ngang: dạng bảng */}
+          <div className="hidden md:block bg-white rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="p-4">Ảnh</th>
+                  <th className="p-4">Tên danh mục</th>
+                  <th className="p-4">Đường dẫn (slug)</th>
+                  <th className="p-4"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {categories.map((c) => (
+                  <tr key={c._id} className="border-t border-gray-100">
+                    <td className="p-4">
+                      <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-100">
+                        {c.imageUrl && <img src={c.imageUrl} alt="" className="w-full h-full object-cover" />}
+                      </div>
+                    </td>
+                    <td className="p-4 font-medium">{c.name}</td>
+                    <td className="p-4 text-gray-500">
+                      <Link href={`${listPathByType[tab]}?category=${c.slug}`} className="hover:underline" title="Xem danh sách thuộc danh mục này trong admin">
+                        /{c.slug}
+                      </Link>
+                    </td>
+                    <td className="p-4 text-right space-x-3 whitespace-nowrap">
+                      <button onClick={() => startEdit(c)} className="text-blue-600 font-semibold">Sửa</button>
+                      <button onClick={() => handleDelete(c._id)} className="text-red-500 font-semibold">Xoá</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile/tablet đứng: dạng thẻ */}
+          <div className="md:hidden space-y-3">
+            {categories.map((c) => (
+              <div key={c._id} className="bg-white rounded-xl p-4">
+                <div className="flex gap-3 items-center">
+                  <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-100 shrink-0">
+                    {c.imageUrl && <img src={c.imageUrl} alt="" className="w-full h-full object-cover" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{c.name}</p>
+                    <Link href={`${listPathByType[tab]}?category=${c.slug}`} className="text-xs text-gray-500 hover:underline">/{c.slug}</Link>
+                  </div>
+                </div>
+                <div className="flex gap-5 mt-3 pt-3 border-t border-gray-100 text-sm">
+                  <button onClick={() => startEdit(c)} className="text-blue-600 font-semibold">Sửa</button>
+                  <button onClick={() => handleDelete(c._id)} className="text-red-500 font-semibold">Xoá</button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 space-y-4 self-start">
