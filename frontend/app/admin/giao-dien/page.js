@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import ImageUploader from "@/components/admin/ImageUploader";
 
@@ -48,6 +49,27 @@ export default function AdminSettingsPage() {
         <div>
           <label className="block text-sm font-semibold mb-2">Logo</label>
           <ImageUploader value={settings.logoUrl} onChange={(v) => update("logoUrl", v)} />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Favicon (icon nhỏ hiện trên tab trình duyệt)</label>
+          <ImageUploader value={settings.faviconUrl} onChange={(v) => update("faviconUrl", v)} />
+          <p className="text-xs text-gray-400 mt-1">Nên dùng ảnh vuông, tối thiểu 32x32px, định dạng PNG.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Hiển thị trên thanh menu (navbar)</label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" checked={settings.brandDisplayMode !== "logo"} onChange={() => update("brandDisplayMode", "text")} />
+              Tên thương hiệu (chữ)
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" checked={settings.brandDisplayMode === "logo"} onChange={() => update("brandDisplayMode", "logo")} />
+              Ảnh logo
+            </label>
+          </div>
+          {settings.brandDisplayMode === "logo" && !settings.logoUrl && (
+            <p className="text-xs text-red-500 mt-1">Chưa có ảnh logo — hãy tải logo lên ở trên trước, nếu không navbar sẽ tự hiện tạm tên thương hiệu.</p>
+          )}
         </div>
       </div>
 
@@ -184,6 +206,21 @@ export default function AdminSettingsPage() {
 
       <div className="bg-white rounded-xl p-8 space-y-6 mb-6">
         <h2 className="font-bold text-lg">Chân trang (Footer)</h2>
+        <p className="text-xs text-gray-500 -mt-4">
+          Toàn bộ nội dung chân trang có thể chỉnh ở đây: tên thương hiệu, khẩu hiệu, mạng xã hội (mục "Thông tin chung"/"Mạng xã hội" phía trên),
+          thông tin liên hệ (mục "Thông tin liên hệ" phía trên), và dòng bản quyền bên dưới.
+          Riêng các <strong>liên kết trong 2 cột "Khám phá"/"Công ty"</strong> được quản lý riêng tại{" "}
+          <Link href="/admin/menu" target="_blank" className="text-blue-600 hover:underline">Menu điều hướng → tab "Menu chân trang"</Link>.
+        </p>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Tiêu đề cột liên hệ</label>
+          <input
+            value={settings.footerContactHeading}
+            onChange={(e) => update("footerContactHeading", e.target.value)}
+            className="w-full border rounded-lg px-4 py-2"
+            placeholder="Liên hệ"
+          />
+        </div>
         <div>
           <label className="block text-sm font-semibold mb-2">Dòng bản quyền hiển thị cuối trang</label>
           <input
