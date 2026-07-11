@@ -6,6 +6,8 @@ const settingSchema = new mongoose.Schema(
     tagline: { type: String, default: "Kiến tạo không gian kiến trúc" },
     logoUrl: { type: String, default: "" },
     faviconUrl: { type: String, default: "" },
+    // "text" = hiện tên thương hiệu, "logo" = hiện ảnh logo trên navbar
+    brandDisplayMode: { type: String, enum: ["text", "logo"], default: "text" },
 
     // Theme màu sắc - map trực tiếp sang CSS variables / tailwind config phía frontend
     colors: {
@@ -46,6 +48,7 @@ const settingSchema = new mongoose.Schema(
     },
 
     footerText: { type: String, default: "© 2026 Lucent Glass. Kiến Trúc Hoàn Hảo." },
+    footerContactHeading: { type: String, default: "Liên hệ" },
 
     shipping: {
       freeShippingThreshold: { type: Number, default: 2000000 },
