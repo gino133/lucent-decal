@@ -38,7 +38,7 @@ export default function Footer({ settings, footerMenu }) {
         ))}
 
         <div className="col-span-2 md:col-span-1">
-          <h4 className="font-body text-sm font-bold mb-4 uppercase tracking-wider">Liên hệ</h4>
+          <h4 className="font-body text-sm font-bold mb-4 uppercase tracking-wider">{settings?.footerContactHeading || "Liên hệ"}</h4>
           <p className="text-sm text-on-background/70 mb-2">{settings?.contact?.address}</p>
           <p className="text-sm text-on-background/70 mb-2">{settings?.contact?.phone}</p>
           <p className="text-sm text-on-background/70">{settings?.contact?.email}</p>

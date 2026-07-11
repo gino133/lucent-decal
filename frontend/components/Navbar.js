@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 
@@ -35,8 +36,23 @@ export default function Navbar({ settings, menu }) {
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-on-background/10">
       <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
-        <Link href="/" className="font-heading font-bold text-xl md:text-2xl tracking-tight shrink-0">
-          {settings?.siteName || "Lucent Glass"}
+        <Link href="/" className="shrink-0 flex items-center">
+          {settings?.brandDisplayMode === "logo" && settings?.logoUrl ? (
+            <span className="relative h-9 md:h-11 w-auto" style={{ aspectRatio: "auto" }}>
+              <Image
+                src={settings.logoUrl}
+                alt={settings?.siteName || "Logo"}
+                height={44}
+                width={160}
+                className="h-9 md:h-11 w-auto object-contain"
+                priority
+              />
+            </span>
+          ) : (
+            <span className="font-heading font-bold text-xl md:text-2xl tracking-tight">
+              {settings?.siteName || "Lucent Glass"}
+            </span>
+          )}
         </Link>
 
         {/* Menu ngang đầy đủ — chỉ hiện từ desktop rộng (lg) trở lên để tránh tràn dòng ở tablet */}
