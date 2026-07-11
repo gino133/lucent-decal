@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import ImageUploader from "./ImageUploader";
+import RichTextEditor from "./RichTextEditor";
 
 export default function ProjectForm({ initial, projectId }) {
   const router = useRouter();
@@ -141,8 +142,8 @@ export default function ProjectForm({ initial, projectId }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold mb-2">Mô tả chi tiết (hỗ trợ HTML)</label>
-        <textarea rows={5} value={form.description} onChange={(e) => update("description", e.target.value)} className="w-full border rounded-lg px-4 py-2" />
+        <label className="block text-sm font-semibold mb-2">Mô tả chi tiết</label>
+        <RichTextEditor value={form.description} onChange={(html) => update("description", html)} placeholder="Nhập mô tả chi tiết dự án..." />
       </div>
 
       <div className="flex gap-6">

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import ImageUploader from "./ImageUploader";
+import RichTextEditor from "./RichTextEditor";
 
 export default function PostForm({ initial, postId }) {
   const router = useRouter();
@@ -76,8 +77,8 @@ export default function PostForm({ initial, postId }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold mb-2">Nội dung bài viết (hỗ trợ HTML)</label>
-        <textarea rows={10} value={form.content} onChange={(e) => update("content", e.target.value)} className="w-full border rounded-lg px-4 py-2 font-mono text-sm" />
+        <label className="block text-sm font-semibold mb-2">Nội dung bài viết</label>
+        <RichTextEditor value={form.content} onChange={(html) => update("content", html)} placeholder="Nhập nội dung bài viết..." minHeight={280} />
       </div>
 
       <div>

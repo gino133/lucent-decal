@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import ImageUploader from "./ImageUploader";
+import RichTextEditor from "./RichTextEditor";
 
 // Tích Descartes (cartesian product): từ [["Trắng","Đen"], ["S","L"]]
 // tạo ra tất cả tổ hợp: [["Trắng","S"],["Trắng","L"],["Đen","S"],["Đen","L"]]
@@ -164,8 +165,8 @@ export default function ProductForm({ initial, productId }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold mb-2">Mô tả chi tiết (hỗ trợ HTML)</label>
-        <textarea rows={6} value={form.description} onChange={(e) => update("description", e.target.value)} className="w-full border rounded-lg px-4 py-2 resize-y min-h-[140px]" />
+        <label className="block text-sm font-semibold mb-2">Mô tả chi tiết</label>
+        <RichTextEditor value={form.description} onChange={(html) => update("description", html)} placeholder="Nhập mô tả chi tiết sản phẩm..." />
       </div>
 
       <div>

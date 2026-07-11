@@ -1,5 +1,6 @@
 "use client";
 import ImageUploader from "./ImageUploader";
+import RichTextEditor from "./RichTextEditor";
 
 const BLOCK_TYPE_LABELS = {
   hero: "Banner lớn (Hero)", richtext: "Đoạn văn bản", imageText: "Ảnh + Chữ",
@@ -41,13 +42,13 @@ export default function BlockEditor({ block, onChange, onRemove }) {
       )}
 
       {block.type === "richtext" && (
-        <textarea rows={14} placeholder="Nội dung HTML" value={data.html || ""} onChange={(e) => updateData("html", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm font-mono resize-y min-h-[200px]" />
+        <RichTextEditor value={data.html} onChange={(html) => updateData("html", html)} placeholder="Nhập nội dung..." minHeight={220} />
       )}
 
       {block.type === "imageText" && (
         <div className="space-y-3">
           <input placeholder="Tiêu đề" value={data.title || ""} onChange={(e) => updateData("title", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
-          <textarea rows={10} placeholder="Nội dung HTML" value={data.html || ""} onChange={(e) => updateData("html", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm font-mono resize-y min-h-[160px]" />
+          <RichTextEditor value={data.html} onChange={(html) => updateData("html", html)} placeholder="Nhập nội dung..." minHeight={160} />
           <select value={data.imagePosition || "left"} onChange={(e) => updateData("imagePosition", e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
             <option value="left">Ảnh bên trái</option>
             <option value="right">Ảnh bên phải</option>
