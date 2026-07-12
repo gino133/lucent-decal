@@ -2,12 +2,13 @@
 import ImageUploader from "./ImageUploader";
 import RichTextEditor from "./RichTextEditor";
 
-const BLOCK_TYPE_LABELS = {
+export const BLOCK_TYPE_LABELS = {
   hero: "Banner lớn (Hero)", richtext: "Đoạn văn bản", imageText: "Ảnh + Chữ",
   gallery: "Thư viện ảnh", stats: "Số liệu nổi bật", testimonial: "Đánh giá khách hàng",
   cta: "Kêu gọi hành động", team: "Đội ngũ", faq: "Câu hỏi thường gặp",
-  logos: "Logo đối tác", productsFeatured: "Sản phẩm nổi bật (tự động)",
-  projectsFeatured: "Dự án nổi bật (tự động)", postsFeatured: "Tin tức nổi bật (tự động)",
+  logos: "Logo đối tác", featureCards: "Lưới nội dung tuỳ chỉnh (tự nhập)",
+  productsFeatured: "Sản phẩm nổi bật (tự động, lấy từ DB)",
+  projectsFeatured: "Dự án nổi bật (tự động, lấy từ DB)", postsFeatured: "Tin tức nổi bật (tự động, lấy từ DB)",
   contactForm: "Form liên hệ", map: "Bản đồ",
 };
 
@@ -42,13 +43,13 @@ export default function BlockEditor({ block, onChange, onRemove }) {
       )}
 
       {block.type === "richtext" && (
-        <RichTextEditor value={data.html} onChange={(html) => updateData("html", html)} placeholder="Nhập nội dung..." minHeight={220} />
+        <RichTextEditor value={data.html} onChange={(html) => updateData("html", html)} placeholder="Nhập nội dung..." minHeight={300} />
       )}
 
       {block.type === "imageText" && (
         <div className="space-y-3">
           <input placeholder="Tiêu đề" value={data.title || ""} onChange={(e) => updateData("title", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
-          <RichTextEditor value={data.html} onChange={(html) => updateData("html", html)} placeholder="Nhập nội dung..." minHeight={160} />
+          <RichTextEditor value={data.html} onChange={(html) => updateData("html", html)} placeholder="Nhập nội dung..." minHeight={220} />
           <select value={data.imagePosition || "left"} onChange={(e) => updateData("imagePosition", e.target.value)} className="border rounded-lg px-3 py-2 text-sm">
             <option value="left">Ảnh bên trái</option>
             <option value="right">Ảnh bên phải</option>
@@ -90,11 +91,61 @@ export default function BlockEditor({ block, onChange, onRemove }) {
         <input placeholder="URL nhúng Google Maps (embed)" value={data.embedUrl || ""} onChange={(e) => updateData("embedUrl", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
       )}
 
+      {block.type === "featureCards" && <FeatureCardsEditor data={data} updateData={updateData} />}
+
       {(block.type === "productsFeatured" || block.type === "projectsFeatured" || block.type === "postsFeatured") && (
-        <input placeholder="Tiêu đề khối" value={data.title || ""} onChange={(e) => updateData("title", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+        <div className="space-y-2">
+          <input placeholder="Tiêu đề khối" value={data.title || ""} onChange={(e) => updateData("title", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2">
+            ⚠️ Khối này tự động lấy dữ liệu thật từ mục {block.type === "productsFeatured" ? "Sản phẩm" : block.type === "projectsFeatured" ? "Dự án" : "Tin tức"} đã đánh dấu "Nổi bật" — không nhập nội dung tuỳ ý được ở đây.
+            Muốn tự viết nội dung riêng, hãy dùng khối <strong>"Lưới nội dung tuỳ chỉnh"</strong> ở danh sách bên dưới thay vì khối này.
+          </p>
+        </div>
       )}
 
       {block.type === "contactForm" && <p className="text-xs text-gray-500">Khối này tự động hiển thị form liên hệ, không cần cấu hình thêm.</p>}
+    </div>
+  );
+}
+
+function FeatureCardsEditor({ data, updateData }) {
+  const items = data.items || [];
+  function updateItem(idx, field, value) {
+    const next = [...items];
+    next[idx] = { ...next[idx], [field]: value };
+    updateData("items", next);
+  }
+  function addItem() { updateData("items", [...items, { title: "", description: "", image: "", link: "", linkText: "" }]); }
+  function removeItem(idx) { updateData("items", items.filter((_, i) => i !== idx)); }
+
+  return (
+    <div className="space-y-4">
+      <input placeholder="Tiêu đề khối (VD: Dịch vụ của chúng tôi)" value={data.title || ""} onChange={(e) => updateData("title", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+      <div className="flex items-center gap-3">
+        <label className="text-xs font-semibold">Số cột hiển thị:</label>
+        <select value={data.columns || 3} onChange={(e) => updateData("columns", Number(e.target.value))} className="border rounded-lg px-2 py-1 text-sm">
+          <option value={2}>2 cột</option>
+          <option value={3}>3 cột</option>
+          <option value={4}>4 cột</option>
+        </select>
+      </div>
+
+      {items.map((item, i) => (
+        <div key={i} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-semibold text-gray-500">Thẻ #{i + 1}</span>
+            <button type="button" onClick={() => removeItem(i)} className="text-red-500 text-xs font-semibold">Xoá thẻ</button>
+          </div>
+          <ImageUploader value={item.image} onChange={(v) => updateItem(i, "image", v)} />
+          <input placeholder="Tiêu đề thẻ" value={item.title || ""} onChange={(e) => updateItem(i, "title", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+          <textarea rows={2} placeholder="Mô tả ngắn" value={item.description || ""} onChange={(e) => updateItem(i, "description", e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+          <div className="grid grid-cols-2 gap-2">
+            <input placeholder="Đường dẫn (VD: /dich-vu/thi-cong)" value={item.link || ""} onChange={(e) => updateItem(i, "link", e.target.value)} className="border rounded-lg px-3 py-2 text-sm" />
+            <input placeholder="Chữ link (VD: Xem chi tiết)" value={item.linkText || ""} onChange={(e) => updateItem(i, "linkText", e.target.value)} className="border rounded-lg px-3 py-2 text-sm" />
+          </div>
+        </div>
+      ))}
+      <button type="button" onClick={addItem} className="text-sm text-blue-600 font-semibold">+ Thêm thẻ</button>
     </div>
   );
 }
