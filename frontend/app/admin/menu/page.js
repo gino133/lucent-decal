@@ -1,6 +1,34 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
+
+// Các đường dẫn có sẵn nội dung/trang danh sách riêng (không phải trang tự do soạn ở /admin/trang)
+const NON_CONTENT_PATHS = ["/", "/san-pham", "/du-an", "/tin-tuc", "/gio-hang"];
+
+// Từ 1 URL menu (VD: "/dich-vu/thi-cong" hoặc "/trang/dich-vu-a"), suy ra slug trang nội dung
+// tương ứng để mở thẳng sang /admin/trang chỉnh sửa. Trả về null nếu URL này không áp dụng được
+// (đường dẫn ngoài, có tham số ?..., trang danh sách động, hoặc mục chỉ là tiêu đề nhóm "#").
+function getContentEditHref(url, label) {
+  if (!url || url === "#" || url.startsWith("http") || url.includes("?")) return null;
+  if (NON_CONTENT_PATHS.includes(url)) return null;
+  if (url === "/gioi-thieu" || url === "/ho-so-nang-luc" || url === "/lien-he") {
+    return `/admin/trang?slug=${url.slice(1)}&title=${encodeURIComponent(label || url)}`;
+  }
+  const slug = url.replace(/^\/trang\//, "").replace(/^\//, "");
+  if (!slug) return null;
+  return `/admin/trang?slug=${slug}&title=${encodeURIComponent(label || slug)}`;
+}
+
+function EditContentLink({ url, label }) {
+  const href = getContentEditHref(url, label);
+  if (!href) return null;
+  return (
+    <Link href={href} target="_blank" className="text-xs text-blue-600 hover:underline whitespace-nowrap shrink-0" title="Mở trang Nội dung để soạn nội dung cho đường dẫn này">
+      ✎ Soạn nội dung
+    </Link>
+  );
+}
 
 export default function AdminMenuPage() {
   const [tab, setTab] = useState("main");
@@ -94,6 +122,7 @@ function MainMenuEditor() {
     <div className="max-w-3xl space-y-4">
       <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3">
         Mỗi mục có thể thêm <strong>menu con</strong> — khi có menu con, mục đó sẽ hiện dạng dropdown (hổ trợ tối đa 2 cấp: mục cha → mục con).
+        Với các đường dẫn nội dung tự do (không phải Sản phẩm/Dự án/Tin tức/Giỏ hàng), bấm <strong>"✎ Soạn nội dung"</strong> bên cạnh ô đường dẫn để mở thẳng sang soạn nội dung cho đúng trang đó.
       </p>
 
       {items.map((item, idx) => (
@@ -105,6 +134,7 @@ function MainMenuEditor() {
             </div>
             <input value={item.label} onChange={(e) => updateItem(idx, "label", e.target.value)} placeholder="Tên hiển thị" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
             <input value={item.url} onChange={(e) => updateItem(idx, "url", e.target.value)} placeholder="/duong-dan" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
+            <EditContentLink url={item.url} label={item.label} />
             <button onClick={() => removeItem(idx)} className="text-red-500 px-2">×</button>
           </div>
 
@@ -127,6 +157,7 @@ function MainMenuEditor() {
                   placeholder="/duong-dan"
                   className="flex-1 border rounded-lg px-3 py-2 text-xs"
                 />
+                <EditContentLink url={child.url} label={child.label} />
                 <button onClick={() => removeChild(idx, cIdx)} className="text-red-500 px-2">×</button>
               </div>
             ))}
@@ -255,6 +286,7 @@ function FooterMenuEditor() {
                   placeholder="/duong-dan"
                   className="flex-1 border rounded-lg px-3 py-2 text-xs"
                 />
+                <EditContentLink url={child.url} label={child.label} />
                 <button onClick={() => removeChild(gIdx, cIdx)} className="text-red-500 px-2">×</button>
               </div>
             ))}
