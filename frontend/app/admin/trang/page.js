@@ -1,8 +1,9 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, apiWithRetry, friendlyErrorMessage } from "@/lib/api";
 import BlockEditor, { BLOCK_TYPE_LABELS } from "@/components/admin/BlockEditor";
+import PreviewRenderer from "@/components/PreviewRenderer";
 
 // Các trang cố định luôn có link cứng ngoài website (không theo /<slug>)
 const FIXED_PAGE_LABELS = {
@@ -45,6 +46,7 @@ function AdminPagesPage() {
   const [page, setPage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   // Luôn tải lại danh sách trang THẬT từ server (không dùng state tạm client)
   // để sau khi F5 vẫn thấy đầy đủ các trang đã tạo, kể cả trang tuỳ chỉnh.
@@ -93,11 +95,11 @@ function AdminPagesPage() {
   async function save() {
     setSaving(true);
     try {
-      await api.put(`/pages/${activeSlug}`, page);
+      await apiWithRetry("put", `/pages/${activeSlug}`, page);
       await loadPageList();
       alert("Đã lưu nội dung trang!");
     } catch (err) {
-      alert(err.response?.data?.message || "Lưu thất bại, vui lòng thử lại.");
+      alert("Lưu thất bại: " + friendlyErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -118,7 +120,7 @@ function AdminPagesPage() {
 
     setCreating(true);
     try {
-      await api.put(`/pages/${slug}`, {
+      await apiWithRetry("put", `/pages/${slug}`, {
         slug,
         title: newTitle.trim(),
         blocks: [{ type: "richtext", order: 0, data: { html: "<p>Nội dung mới...</p>" }, visible: true }],
@@ -128,7 +130,7 @@ function AdminPagesPage() {
       setNewSlug("");
       setNewTitle("");
     } catch (err) {
-      alert(err.response?.data?.message || "Tạo trang thất bại, vui lòng thử lại.");
+      alert("Tạo trang thất bại: " + friendlyErrorMessage(err));
     } finally {
       setCreating(false);
     }
@@ -202,40 +204,89 @@ function AdminPagesPage() {
       </div>
 
       {!page ? <p>Đang tải...</p> : (
-        <div className="max-w-3xl">
-          {activeSlug !== "home" &&
-            activeSlug !== "gioi-thieu" &&
-            activeSlug !== "ho-so-nang-luc" &&
-            activeSlug !== "lien-he" && (
-              <p className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
-                Trang này hiển thị tại: <code>/{activeSlug}</code>
-              </p>
-            )}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+          {/* Cột soạn thảo */}
+          <div className="max-w-3xl lg:max-w-none">
+            {activeSlug !== "home" &&
+              activeSlug !== "gioi-thieu" &&
+              activeSlug !== "ho-so-nang-luc" &&
+              activeSlug !== "lien-he" && (
+                <p className="text-xs text-blue-600 bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
+                  Trang này hiển thị tại: <code>/{activeSlug}</code>
+                </p>
+              )}
 
-          {page.blocks.map((block, idx) => (
-            <div key={block._id || idx} className="relative">
-              <div className="absolute -left-8 top-5 flex flex-col text-gray-400">
-                <button onClick={() => move(idx, -1)} className="hover:text-black text-xs">▲</button>
-                <button onClick={() => move(idx, 1)} className="hover:text-black text-xs">▼</button>
+            {page.blocks.map((block, idx) => (
+              <div key={block._id || idx} className="relative">
+                <div className="absolute -left-8 top-5 flex flex-col text-gray-400">
+                  <button onClick={() => move(idx, -1)} className="hover:text-black text-xs">▲</button>
+                  <button onClick={() => move(idx, 1)} className="hover:text-black text-xs">▼</button>
+                </div>
+                <BlockEditor block={block} onChange={(b) => updateBlock(idx, b)} onRemove={() => removeBlock(idx)} />
               </div>
-              <BlockEditor block={block} onChange={(b) => updateBlock(idx, b)} onRemove={() => removeBlock(idx)} />
-            </div>
-          ))}
+            ))}
 
-          <div className="bg-white border-2 border-dashed rounded-xl p-5 mb-6">
-            <p className="text-sm font-semibold mb-3">+ Thêm khối nội dung mới</p>
-            <div className="flex flex-wrap gap-2">
-              {BLOCK_TYPES.map((t) => (
-                <button key={t} onClick={() => addBlock(t)} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg">{BLOCK_TYPE_LABELS[t] || t}</button>
-              ))}
+            <div className="bg-white border-2 border-dashed rounded-xl p-5 mb-6">
+              <p className="text-sm font-semibold mb-3">+ Thêm khối nội dung mới</p>
+              <div className="flex flex-wrap gap-2">
+                {BLOCK_TYPES.map((t) => (
+                  <button key={t} onClick={() => addBlock(t)} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg">{BLOCK_TYPE_LABELS[t] || t}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button onClick={save} disabled={saving} className="bg-[#fae519] font-bold px-10 py-3 rounded-lg disabled:opacity-50">
+                {saving ? "Đang lưu..." : "Lưu nội dung trang"}
+              </button>
+              <button
+                onClick={() => setShowMobilePreview(true)}
+                className="lg:hidden bg-white border border-gray-300 font-semibold px-5 py-3 rounded-lg text-sm"
+              >
+                👁 Xem trước
+              </button>
             </div>
           </div>
 
-          <button onClick={save} disabled={saving} className="bg-[#fae519] font-bold px-10 py-3 rounded-lg disabled:opacity-50">
-            {saving ? "Đang lưu..." : "Lưu nội dung trang"}
-          </button>
+          {/* Cột xem trước trực tiếp — chỉ hiện song song trên màn hình rộng (lg+) */}
+          <div className="hidden lg:block sticky top-6">
+            <PreviewFrame page={page} />
+          </div>
         </div>
       )}
+
+      {/* Xem trước dạng lớp phủ toàn màn hình — dùng cho mobile/tablet */}
+      {showMobilePreview && page && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowMobilePreview(false)}>
+          <div className="bg-white rounded-xl w-full max-w-lg h-[85vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
+              <span className="font-semibold text-sm">Xem trước</span>
+              <button onClick={() => setShowMobilePreview(false)} className="text-gray-500"><span className="material-symbols-outlined">close</span></button>
+            </div>
+            <div className="flex-1 overflow-y-auto bg-background">
+              <PreviewRenderer blocks={page.blocks} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Khung mô phỏng trình duyệt bao quanh phần xem trước, giúp dễ phân biệt
+// đây là "bản xem trước" chứ không phải phần điều khiển của trang quản trị.
+function PreviewFrame({ page }) {
+  return (
+    <div className="border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-gray-100 border-b border-gray-300 px-4 py-2.5 flex items-center gap-2">
+        <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+        <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+        <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
+        <span className="ml-3 text-xs text-gray-500 truncate">Xem trước — {page.title}</span>
+      </div>
+      <div className="bg-background max-h-[calc(100vh-140px)] overflow-y-auto">
+        <PreviewRenderer blocks={page.blocks} />
+      </div>
     </div>
   );
 }
