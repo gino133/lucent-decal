@@ -133,6 +133,52 @@ async function Block({ block }) {
     );
   }
 
+  if (type === "featureCards") {
+    const items = data.items || [];
+    if (!items.length) return null;
+    const cols = data.columns === 2 ? "md:grid-cols-2" : data.columns === 4 ? "md:grid-cols-4" : "md:grid-cols-3";
+    return (
+      <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-16">
+        {data.title && (
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-heading text-2xl md:text-3xl font-bold">{data.title}</h2>
+          </div>
+        )}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${cols} gap-6`}>
+          {items.map((item, i) => {
+            const CardInner = (
+              <>
+                {item.image && (
+                  <div className="relative w-full aspect-[4/3] overflow-hidden bg-surface">
+                    <Image src={item.image} alt={item.title || ""} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                )}
+                <div className="p-5">
+                  {item.title && <h3 className="font-heading font-semibold text-lg mb-2">{item.title}</h3>}
+                  {item.description && <p className="text-sm text-on-background/60 mb-3 line-clamp-3">{item.description}</p>}
+                  {item.linkText && (
+                    <span className="text-sm font-semibold inline-flex items-center gap-1">
+                      {item.linkText} <span className="material-symbols-outlined text-base">arrow_forward</span>
+                    </span>
+                  )}
+                </div>
+              </>
+            );
+            return item.link ? (
+              <Link key={i} href={item.link} className="group block rounded-xl overflow-hidden border border-on-background/10 hover:shadow-lg transition-shadow bg-white">
+                {CardInner}
+              </Link>
+            ) : (
+              <div key={i} className="group block rounded-xl overflow-hidden border border-on-background/10 bg-white">
+                {CardInner}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
   if (type === "productsFeatured") {
     const res = await getProducts("?featured=true&limit=8");
     const products = res?.items || [];
