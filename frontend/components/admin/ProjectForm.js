@@ -143,7 +143,7 @@ export default function ProjectForm({ initial, projectId }) {
 
       <div>
         <label className="block text-sm font-semibold mb-2">Mô tả chi tiết</label>
-        <RichTextEditor value={form.description} onChange={(html) => update("description", html)} placeholder="Nhập mô tả chi tiết dự án..." />
+        <RichTextEditor value={form.description} onChange={(html) => update("description", html)} placeholder="Nhập mô tả chi tiết dự án..." minHeight={240} />
       </div>
 
       <div className="flex gap-6">

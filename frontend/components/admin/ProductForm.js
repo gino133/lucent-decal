@@ -166,7 +166,7 @@ export default function ProductForm({ initial, productId }) {
 
       <div>
         <label className="block text-sm font-semibold mb-2">Mô tả chi tiết</label>
-        <RichTextEditor value={form.description} onChange={(html) => update("description", html)} placeholder="Nhập mô tả chi tiết sản phẩm..." />
+        <RichTextEditor value={form.description} onChange={(html) => update("description", html)} placeholder="Nhập mô tả chi tiết sản phẩm..." minHeight={240} />
       </div>
 
       <div>

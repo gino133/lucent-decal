@@ -78,7 +78,7 @@ export default function PostForm({ initial, postId }) {
 
       <div>
         <label className="block text-sm font-semibold mb-2">Nội dung bài viết</label>
-        <RichTextEditor value={form.content} onChange={(html) => update("content", html)} placeholder="Nhập nội dung bài viết..." minHeight={280} />
+        <RichTextEditor value={form.content} onChange={(html) => update("content", html)} placeholder="Nhập nội dung bài viết..." minHeight={320} />
       </div>
 
       <div>
