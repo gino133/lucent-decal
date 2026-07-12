@@ -2,7 +2,10 @@ import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-export const api = axios.create({ baseURL: API_URL });
+// timeout rõ ràng (25s) để phân biệt được 2 tình huống khác nhau:
+// - Lỗi NGAY LẬP TỨC (vài trăm ms) -> thường là CORS/kết nối bị chặn, KHÔNG phải do "ngủ đông"
+// - Lỗi SAU KHI CHỜ ĐỦ 25s -> đúng là timeout/server phản hồi quá chậm
+export const api = axios.create({ baseURL: API_URL, timeout: 25000 });
 
 // Gắn token admin (nếu có) cho các request phía client
 export function setAuthToken(token) {
@@ -13,25 +16,35 @@ export function setAuthToken(token) {
   }
 }
 
-// Tự thử lại 1 lần nếu là lỗi mạng/timeout (không có response) — thường do server
+// Tự thử lại nếu là lỗi mạng/timeout (không có response) — thường do server
 // free-tier đang "thức dậy" sau thời gian không hoạt động, không phải lỗi thật.
 // Dùng cho các thao tác LƯU quan trọng trong admin (tránh mất công gõ lại nội dung).
-export async function apiWithRetry(method, url, data, config, retries = 1) {
+export async function apiWithRetry(method, url, data, config, retries = 2) {
+  const startedAt = Date.now();
   try {
     return await api[method](url, data, config);
   } catch (err) {
+    err._elapsedMs = Date.now() - startedAt; // gắn thời gian đã chờ để chẩn đoán chính xác hơn
     const isNetworkError = !err.response;
     if (isNetworkError && retries > 0) {
-      await new Promise((r) => setTimeout(r, 2500));
+      await new Promise((r) => setTimeout(r, 6000));
       return apiWithRetry(method, url, data, config, retries - 1);
     }
     throw err;
   }
 }
 
+// Hiện đúng nguyên nhân kỹ thuật (mã lỗi, thời gian đã chờ) thay vì chỉ đoán chung chung,
+// để nếu vẫn còn lỗi, thông tin hiện ra đã đủ để xác định chính xác nguyên nhân thật.
 export function friendlyErrorMessage(err) {
   if (!err.response) {
-    return "Không kết nối được tới máy chủ (có thể server đang khởi động lại do không hoạt động một thời gian). Đợi khoảng 30 giây rồi thử lại — nội dung bạn đã nhập vẫn còn nguyên, chưa bị mất.";
+    const ms = err._elapsedMs ?? 0;
+    const isSlowTimeout = err.code === "ECONNABORTED" || ms > 15000;
+    const detail = `[mã lỗi: ${err.code || "?"} · ${err.message || "?"} · đã chờ ${Math.round(ms / 1000)}s]`;
+    if (isSlowTimeout) {
+      return `Máy chủ phản hồi quá chậm (đã chờ ${Math.round(ms / 1000)}s) — có thể do server đang khởi động lại. ${detail}`;
+    }
+    return `Không kết nối được tới máy chủ NGAY LẬP TỨC (không phải do chờ lâu) — nhiều khả năng do cấu hình CORS hoặc backend đang gặp sự cố, không phải do "ngủ đông". ${detail}`;
   }
   return err.response?.data?.message || err.message || "Có lỗi không xác định xảy ra.";
 }
