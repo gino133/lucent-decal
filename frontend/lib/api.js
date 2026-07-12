@@ -13,6 +13,29 @@ export function setAuthToken(token) {
   }
 }
 
+// Tự thử lại 1 lần nếu là lỗi mạng/timeout (không có response) — thường do server
+// free-tier đang "thức dậy" sau thời gian không hoạt động, không phải lỗi thật.
+// Dùng cho các thao tác LƯU quan trọng trong admin (tránh mất công gõ lại nội dung).
+export async function apiWithRetry(method, url, data, config, retries = 1) {
+  try {
+    return await api[method](url, data, config);
+  } catch (err) {
+    const isNetworkError = !err.response;
+    if (isNetworkError && retries > 0) {
+      await new Promise((r) => setTimeout(r, 2500));
+      return apiWithRetry(method, url, data, config, retries - 1);
+    }
+    throw err;
+  }
+}
+
+export function friendlyErrorMessage(err) {
+  if (!err.response) {
+    return "Không kết nối được tới máy chủ (có thể server đang khởi động lại do không hoạt động một thời gian). Đợi khoảng 30 giây rồi thử lại — nội dung bạn đã nhập vẫn còn nguyên, chưa bị mất.";
+  }
+  return err.response?.data?.message || err.message || "Có lỗi không xác định xảy ra.";
+}
+
 // ---- Hàm fetch dùng ở Server Components (SSR) ----
 // revalidate: số giây Vercel được phép dùng lại dữ liệu cũ trước khi lấy mới từ backend.
 // Giúp trang tải nhanh hơn nhiều cho khách truy cập, đổi lại nội dung admin sửa
