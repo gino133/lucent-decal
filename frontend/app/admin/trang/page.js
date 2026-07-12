@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
-import BlockEditor from "@/components/admin/BlockEditor";
+import BlockEditor, { BLOCK_TYPE_LABELS } from "@/components/admin/BlockEditor";
 
 // Các trang cố định luôn có link cứng ngoài website (không theo /<slug>)
 const FIXED_PAGE_LABELS = {
@@ -10,7 +11,7 @@ const FIXED_PAGE_LABELS = {
 };
 
 const BLOCK_TYPES = [
-  "hero", "richtext", "imageText", "gallery", "stats", "cta",
+  "hero", "richtext", "imageText", "featureCards", "gallery", "stats", "cta",
   "logos", "productsFeatured", "projectsFeatured", "postsFeatured", "contactForm", "map",
 ];
 
@@ -19,12 +20,28 @@ const RESERVED_SLUGS = [
   "gio-hang", "checkout", "admin", "trang", "api",
 ];
 
-export default function AdminPagesPage() {
+export default function AdminPagesPageWrapper() {
+  return (
+    <Suspense fallback={<p>Đang tải...</p>}>
+      <AdminPagesPage />
+    </Suspense>
+  );
+}
+
+function AdminPagesPage() {
+  const searchParams = useSearchParams();
   const [allPages, setAllPages] = useState([]); // toàn bộ trang lấy thật từ database
   const [loadingList, setLoadingList] = useState(true);
   const [newSlug, setNewSlug] = useState("");
   const [newTitle, setNewTitle] = useState("");
-  const [activeSlug, setActiveSlug] = useState("home");
+  // Nếu được mở từ trang Menu kèm ?slug=...&title=..., mở thẳng đến đúng trang đó
+  const initialSlug = searchParams.get("slug") || "home";
+  const [activeSlug, setActiveSlug] = useState(initialSlug);
+  // Lưu tạm tên các trang được mở qua liên kết nhưng chưa từng lưu (chưa có trong DB)
+  const [pendingLabels, setPendingLabels] = useState(() => {
+    const t = searchParams.get("title");
+    return t && initialSlug !== "home" ? { [initialSlug]: t } : {};
+  });
   const [page, setPage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -48,9 +65,9 @@ export default function AdminPagesPage() {
     setPage(null);
     try {
       const { data } = await api.get(`/pages/admin/${slug}`);
-      setPage(data || { slug, title: FIXED_PAGE_LABELS[slug] || slug, blocks: [] });
+      setPage(data || { slug, title: allLabels(slug), blocks: [] });
     } catch {
-      setPage({ slug, title: FIXED_PAGE_LABELS[slug] || slug, blocks: [] });
+      setPage({ slug, title: allLabels(slug), blocks: [] });
     }
   }
   useEffect(() => { load(activeSlug); }, [activeSlug]);
@@ -127,12 +144,16 @@ export default function AdminPagesPage() {
 
   const customPagesMap = Object.fromEntries(allPages.map((p) => [p.slug, p.title]));
   function allLabels(slug) {
-    return FIXED_PAGE_LABELS[slug] || customPagesMap[slug] || slug;
+    return FIXED_PAGE_LABELS[slug] || customPagesMap[slug] || pendingLabels[slug] || slug;
   }
 
   // Danh sách tab: các trang cố định luôn hiện trước, sau đó tới các trang tuỳ chỉnh
   // (loại các slug trùng với trang cố định để tránh hiện 2 lần).
+  // Nếu đang mở 1 trang qua liên kết (chưa từng lưu), vẫn hiện tab của nó ngay.
   const customSlugs = allPages.map((p) => p.slug).filter((s) => !FIXED_PAGE_LABELS[s]);
+  if (!FIXED_PAGE_LABELS[activeSlug] && !customSlugs.includes(activeSlug)) {
+    customSlugs.push(activeSlug);
+  }
   const tabSlugs = [...Object.keys(FIXED_PAGE_LABELS), ...customSlugs];
 
   return (
@@ -205,7 +226,7 @@ export default function AdminPagesPage() {
             <p className="text-sm font-semibold mb-3">+ Thêm khối nội dung mới</p>
             <div className="flex flex-wrap gap-2">
               {BLOCK_TYPES.map((t) => (
-                <button key={t} onClick={() => addBlock(t)} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg">{t}</button>
+                <button key={t} onClick={() => addBlock(t)} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg">{BLOCK_TYPE_LABELS[t] || t}</button>
               ))}
             </div>
           </div>
