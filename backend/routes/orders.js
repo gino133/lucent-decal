@@ -4,6 +4,7 @@ const Order = require("../models/Order");
 const Setting = require("../models/Setting");
 const { protect } = require("../middleware/auth");
 const { createPaymentUrl, verifyReturnUrl } = require("../utils/vnpay");
+const asyncHandler = require("../middleware/asyncHandler");
 const router = express.Router();
 
 function genOrderCode() {
@@ -11,53 +12,49 @@ function genOrderCode() {
 }
 
 // POST /api/orders  -> tạo đơn hàng, trả về paymentUrl nếu chọn vnpay
-router.post("/", async (req, res) => {
-  try {
-    const { customer, items, paymentMethod = "vnpay" } = req.body;
-    if (!items || !items.length) return res.status(400).json({ message: "Giỏ hàng trống" });
+router.post("/", asyncHandler(async (req, res) => {
+  const { customer, items, paymentMethod = "vnpay" } = req.body;
+  if (!items || !items.length) return res.status(400).json({ message: "Giỏ hàng trống" });
 
-    const setting = (await Setting.findOne()) || {};
-    const subtotal = items.reduce((sum, it) => sum + it.price * it.quantity, 0);
-    const shippingFee =
-      subtotal >= (setting.shipping?.freeShippingThreshold || 2000000)
-        ? 0
-        : setting.shipping?.flatShippingFee || 50000;
-    const vatAmount = Math.round((subtotal * (setting.shipping?.vatPercent || 10)) / 100);
-    const total = subtotal + shippingFee + vatAmount;
+  const setting = (await Setting.findOne()) || {};
+  const subtotal = items.reduce((sum, it) => sum + it.price * it.quantity, 0);
+  const shippingFee =
+    subtotal >= (setting.shipping?.freeShippingThreshold || 2000000)
+      ? 0
+      : setting.shipping?.flatShippingFee || 50000;
+  const vatAmount = Math.round((subtotal * (setting.shipping?.vatPercent || 10)) / 100);
+  const total = subtotal + shippingFee + vatAmount;
 
-    const order = await Order.create({
-      orderCode: genOrderCode(),
-      customer,
-      items,
-      subtotal,
-      shippingFee,
-      vatAmount,
-      total,
-      paymentMethod,
+  const order = await Order.create({
+    orderCode: genOrderCode(),
+    customer,
+    items,
+    subtotal,
+    shippingFee,
+    vatAmount,
+    total,
+    paymentMethod,
+  });
+
+  if (paymentMethod === "vnpay") {
+    const ipAddr =
+      req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "127.0.0.1";
+    const paymentUrl = createPaymentUrl({
+      orderCode: order.orderCode,
+      amount: total,
+      orderInfo: `Thanh toan don hang ${order.orderCode}`,
+      ipAddr,
     });
-
-    if (paymentMethod === "vnpay") {
-      const ipAddr =
-        req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "127.0.0.1";
-      const paymentUrl = createPaymentUrl({
-        orderCode: order.orderCode,
-        amount: total,
-        orderInfo: `Thanh toan don hang ${order.orderCode}`,
-        ipAddr,
-      });
-      order.vnpayTxnRef = order.orderCode;
-      await order.save();
-      return res.status(201).json({ order, paymentUrl });
-    }
-
-    res.status(201).json({ order });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    order.vnpayTxnRef = order.orderCode;
+    await order.save();
+    return res.status(201).json({ order, paymentUrl });
   }
-});
+
+  res.status(201).json({ order });
+}));
 
 // GET /api/orders/vnpay-return  -> FE gọi API này sau khi VNPay redirect về, kèm toàn bộ query string
-router.get("/vnpay-return", async (req, res) => {
+router.get("/vnpay-return", asyncHandler(async (req, res) => {
   const isValid = verifyReturnUrl(req.query);
   if (!isValid) return res.status(400).json({ success: false, message: "Chữ ký không hợp lệ" });
 
@@ -76,10 +73,10 @@ router.get("/vnpay-return", async (req, res) => {
     await order.save();
     return res.json({ success: false, order, message: "Thanh toán không thành công" });
   }
-});
+}));
 
 // VNPay IPN (server-to-server, dùng khi lên production)
-router.get("/vnpay-ipn", async (req, res) => {
+router.get("/vnpay-ipn", asyncHandler(async (req, res) => {
   const isValid = verifyReturnUrl(req.query);
   if (!isValid) return res.json({ RspCode: "97", Message: "Invalid signature" });
 
@@ -96,24 +93,24 @@ router.get("/vnpay-ipn", async (req, res) => {
   }
   await order.save();
   res.json({ RspCode: "00", Message: "Confirm Success" });
-});
+}));
 
 // GET /api/orders/track/:orderCode (public - khách tra cứu đơn hàng)
-router.get("/track/:orderCode", async (req, res) => {
+router.get("/track/:orderCode", asyncHandler(async (req, res) => {
   const order = await Order.findOne({ orderCode: req.params.orderCode });
   if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
   res.json(order);
-});
+}));
 
 // ---- Admin ----
-router.get("/", protect, async (req, res) => {
+router.get("/", protect, asyncHandler(async (req, res) => {
   const orders = await Order.find().sort({ createdAt: -1 });
   res.json(orders);
-});
+}));
 
-router.put("/:id", protect, async (req, res) => {
+router.put("/:id", protect, asyncHandler(async (req, res) => {
   const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json(order);
-});
+}));
 
 module.exports = router;

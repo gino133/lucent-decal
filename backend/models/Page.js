@@ -16,8 +16,10 @@ const blockSchema = new mongoose.Schema(
         "team",          // danh sách thành viên
         "faq",           // câu hỏi thường gặp
         "logos",         // logo đối tác/khách hàng
+        "featureCards",  // lưới thẻ nội dung tự nhập (không lấy từ DB)
         "productsFeatured", // hiển thị sản phẩm nổi bật (tự động lấy từ DB)
         "projectsFeatured", // hiển thị dự án nổi bật (tự động lấy từ DB)
+        "postsFeatured", // hiển thị tin tức nổi bật (tự động lấy từ DB)
         "contactForm",
         "map",
       ],
