@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getProject } from "@/lib/api";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
+import ClickableImage from "@/components/ClickableImage";
 import { notFound } from "next/navigation";
 
 export default async function ProjectDetailPage({ params }) {
@@ -60,9 +61,15 @@ export default async function ProjectDetailPage({ params }) {
         {project.images?.length > 0 && (
           <div className="grid md:grid-cols-2 gap-4 mb-12">
             {project.images.map((img, i) => (
-              <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden">
-                <Image src={img} alt="" fill className="object-cover" />
-              </div>
+              <ClickableImage
+                key={i}
+                src={img}
+                alt={project.name}
+                images={project.images.map((s) => ({ src: s, alt: project.name }))}
+                index={i}
+                className="relative aspect-[4/3] rounded-xl overflow-hidden w-full"
+                imgClassName="object-cover"
+              />
             ))}
           </div>
         )}
