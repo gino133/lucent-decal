@@ -2,54 +2,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { apiWithRetry, friendlyErrorMessage } from "@/lib/api";
+import { compressImage } from "@/lib/imageCompress";
 
-const MAX_DIMENSION = 1920; // px cạnh dài nhất — đủ nét cho web, giảm đáng kể dung lượng ảnh chụp điện thoại
-const JPEG_QUALITY = 0.82;
-
-// Nén/resize ảnh ngay trên trình duyệt trước khi tải lên — ảnh chụp điện thoại hiện đại
-// thường 5-15MB, dễ khiến việc tải lên bị timeout/rớt mạng trên server cấu hình thấp.
-// Giảm xuống còn vài trăm KB giúp tải lên nhanh và ổn định hơn nhiều.
-function compressImage(file) {
-  return new Promise((resolve) => {
-    // Không nén GIF (mất hiệu ứng động) hoặc file đã nhỏ sẵn
-    if (file.type === "image/gif" || file.size < 400 * 1024) return resolve(file);
-
-    const img = new window.Image();
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-          if (width > height) {
-            height = Math.round((height * MAX_DIMENSION) / width);
-            width = MAX_DIMENSION;
-          } else {
-            width = Math.round((width * MAX_DIMENSION) / height);
-            height = MAX_DIMENSION;
-          }
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            if (!blob || blob.size >= file.size) return resolve(file); // giữ file gốc nếu nén không hiệu quả hơn
-            resolve(new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" }));
-          },
-          "image/jpeg",
-          JPEG_QUALITY
-        );
-      };
-      img.onerror = () => resolve(file); // không đọc được ảnh (hiếm) -> vẫn thử tải file gốc lên
-      img.src = e.target.result;
-    };
-    reader.onerror = () => resolve(file);
-    reader.readAsDataURL(file);
-  });
-}
-
-// Component upload ảnh dùng chung: hỗ trợ 1 ảnh (single) hoặc nhiều ảnh (multiple)
+// component upload ảnh dùng chung, 1 ảnh hoặc nhiều ảnh đều được
 export default function ImageUploader({ value, onChange, multiple = false }) {
   const [uploading, setUploading] = useState(false);
   const [progressText, setProgressText] = useState("");
