@@ -5,8 +5,9 @@ import ProductCard from "./ProductCard";
 import ProjectCard from "./ProjectCard";
 import PostCard from "./PostCard";
 import ContactForm from "./ContactForm";
+import ClickableImage from "./ClickableImage";
 
-// Mỗi block trong trang (được quản lý ở /admin/trang) sẽ render tương ứng ở đây.
+// mỗi block quản lý ở /admin/trang sẽ render tương ứng ở đây
 export default async function BlockRenderer({ blocks = [] }) {
   const visible = [...blocks]
     .filter((b) => b && b.visible !== false)
@@ -20,9 +21,8 @@ export default async function BlockRenderer({ blocks = [] }) {
   );
 }
 
-// Bọc an toàn: nếu 1 khối bị lỗi khi render (VD: ảnh hỏng, dữ liệu thiếu),
-// chỉ khối đó bị bỏ qua — không làm sập toàn bộ trang.
-// Lỗi thật sẽ được in ra Vercel Function Logs để dễ chẩn đoán.
+// lỡ 1 khối bị lỗi (ảnh hỏng, thiếu dữ liệu...) thì bỏ qua mỗi khối đó thôi,
+// không kéo sập cả trang. Lỗi thật vẫn in ra log để còn chẩn đoán.
 async function SafeBlock({ block }) {
   try {
     return await Block({ block });
@@ -103,14 +103,21 @@ async function Block({ block }) {
   }
 
   if (type === "gallery") {
+    const images = data.images || [];
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-12">
         {data.title && <h2 className="font-heading text-2xl md:text-3xl font-bold mb-8">{data.title}</h2>}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {(data.images || []).map((src, i) => (
-            <div key={i} className="relative aspect-square rounded-xl overflow-hidden">
-              <Image src={src} alt="" fill className="object-cover" />
-            </div>
+          {images.map((src, i) => (
+            <ClickableImage
+              key={i}
+              src={src}
+              alt={data.title || ""}
+              images={images.map((s) => ({ src: s, alt: data.title || "" }))}
+              index={i}
+              className="relative aspect-square rounded-xl overflow-hidden w-full"
+              imgClassName="object-cover"
+            />
           ))}
         </div>
       </section>

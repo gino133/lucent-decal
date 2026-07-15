@@ -1,15 +1,15 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 
-// Hiển thị giá + (nếu có) bộ chọn tuỳ chọn màu sắc/kích thước/đơn vị... rồi thêm vào giỏ.
-// Với sản phẩm không có biến thể, hoạt động y như ô mua hàng đơn giản trước đây.
-export default function ProductPurchasePanel({ product }) {
+// hiện giá + bộ chọn tuỳ chọn (nếu có) rồi thêm vào giỏ, sản phẩm không có
+// biến thể thì y như ô mua hàng đơn giản bình thường
+export default function ProductPurchasePanel({ product, onVariantChange }) {
   const { addItem } = useCart();
   const hasVariants = product.optionTypes?.length > 0 && product.variants?.length > 0;
 
-  // Mặc định chọn sẵn giá trị đầu tiên của mỗi tuỳ chọn để luôn có giá hiển thị ngay
+  // chọn sẵn giá trị đầu của mỗi tuỳ chọn để có giá hiện ngay, khỏi chờ
   const [selected, setSelected] = useState(() =>
     hasVariants ? product.optionTypes.map((opt) => opt.values[0]) : []
   );
@@ -27,6 +27,11 @@ export default function ProductPurchasePanel({ product }) {
 
   const displayPrice = hasVariants ? matchedVariant?.price ?? product.price : product.price;
   const canAdd = !hasVariants || !!matchedVariant;
+
+  // báo lên ngoài mỗi khi biến thể đang chọn đổi, để ảnh lớn tự đổi theo nếu biến thể có ảnh riêng
+  useEffect(() => {
+    onVariantChange?.(matchedVariant);
+  }, [matchedVariant]);
 
   function selectValue(optIdx, value) {
     setSelected((prev) => {
