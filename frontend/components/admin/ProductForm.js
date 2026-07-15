@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import ImageUploader from "./ImageUploader";
+import VariantImageCell from "./VariantImageCell";
 import RichTextEditor from "./RichTextEditor";
 
-// Tích Descartes (cartesian product): từ [["Trắng","Đen"], ["S","L"]]
-// tạo ra tất cả tổ hợp: [["Trắng","S"],["Trắng","L"],["Đen","S"],["Đen","L"]]
+// ghép hết các tổ hợp lại, vd [["A","B"],["1","2"]] -> [["A","1"],["A","2"],["B","1"],["B","2"]]
 function cartesianProduct(arrays) {
   return arrays.reduce((acc, curr) => acc.flatMap((a) => curr.map((c) => [...a, c])), [[]]);
 }
@@ -15,9 +15,8 @@ function cartesianProduct(arrays) {
 export default function ProductForm({ initial, productId }) {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
-  // Sản phẩm tạo trước khi có tính năng biến thể sẽ không có optionTypes/variants
-  // trong database — luôn đặt mặc định [] để tránh lỗi, và chuyển optionTypes
-  // sang dạng { name, valuesText } (text) để hiển thị/sửa dễ dàng trên form.
+  // sản phẩm cũ (trước khi có biến thể) sẽ không có optionTypes/variants nên phải
+  // set mặc định [] không thì lỗi, với đổi optionTypes qua dạng text cho dễ sửa
   const [form, setForm] = useState(() => ({
     name: "", category: "", price: "", unit: "m²",
     shortDescription: "", description: "", images: [],
@@ -45,7 +44,7 @@ export default function ProductForm({ initial, productId }) {
   function addSpec() { update("specs", [...form.specs, { label: "", value: "" }]); }
   function removeSpec(idx) { update("specs", form.specs.filter((_, i) => i !== idx)); }
 
-  // ---- Tuỳ chọn (Màu sắc / Kích thước / Đơn vị tính...) ----
+  // -- tuỳ chọn kiểu màu sắc/kích thước/đơn vị --
   function updateOptionType(idx, field, value) {
     const next = [...form.optionTypes];
     next[idx] = { ...next[idx], [field]: value };
@@ -58,8 +57,7 @@ export default function ProductForm({ initial, productId }) {
     update("optionTypes", form.optionTypes.filter((_, i) => i !== idx));
   }
 
-  // Sinh lại toàn bộ biến thể từ các loại tuỳ chọn hiện tại (tích Descartes),
-  // giữ nguyên giá của các tổ hợp đã có, chỉ thêm giá mặc định cho tổ hợp mới.
+  // tạo lại hết biến thể từ các tuỳ chọn, giữ giá cũ nếu tổ hợp đã có rồi
   function regenerateVariants() {
     const valueLists = form.optionTypes
       .map((opt) => (opt.valuesText || "").split(",").map((v) => v.trim()).filter(Boolean))
@@ -155,7 +153,7 @@ export default function ProductForm({ initial, productId }) {
           <label className="block text-sm font-semibold mb-2">
             Đơn vị {form.variants?.length > 0 && <span className="text-xs text-gray-400 font-normal">(khi không dùng biến thể)</span>}
           </label>
-          <input value={form.unit} onChange={(e) => update("unit", e.target.value)} className="w-full border rounded-lg px-4 py-2" placeholder="m², cuộn..." />
+          <input value={form.unit} onChange={(e) => update("unit", e.target.value)} className="w-full border rounded-lg px-4 py-2" placeholder="cái, kg, giờ, m²..." />
         </div>
       </div>
 
@@ -202,7 +200,7 @@ export default function ProductForm({ initial, productId }) {
               className="w-48 border rounded-lg px-3 py-2 text-sm"
             />
             <input
-              placeholder="Các giá trị, cách nhau bằng dấu phẩy (VD: Trắng, Đen, Xám)"
+              placeholder="Các giá trị, cách nhau bằng dấu phẩy (VD: Loại 1, Loại 2)"
               value={opt.valuesText}
               onChange={(e) => updateOptionType(idx, "valuesText", e.target.value)}
               className="flex-1 border rounded-lg px-3 py-2 text-sm"
@@ -227,6 +225,7 @@ export default function ProductForm({ initial, productId }) {
                 <thead className="bg-gray-50 text-left">
                   <tr>
                     <th className="p-3">Tổ hợp</th>
+                    <th className="p-3 w-14">Ảnh</th>
                     <th className="p-3 w-32">Giá (VNĐ)</th>
                     <th className="p-3 w-24">Kho</th>
                     <th className="p-3 w-10"></th>
@@ -236,6 +235,9 @@ export default function ProductForm({ initial, productId }) {
                   {form.variants.map((v, idx) => (
                     <tr key={idx} className="border-t">
                       <td className="p-3">{v.optionValues.join(" / ")}</td>
+                      <td className="p-3">
+                        <VariantImageCell value={v.image} onChange={(url) => updateVariant(idx, "image", url)} />
+                      </td>
                       <td className="p-3">
                         <input
                           type="number"
