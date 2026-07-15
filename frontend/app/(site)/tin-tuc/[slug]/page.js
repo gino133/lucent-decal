@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getPost, getPosts } from "@/lib/api";
 import PostCard from "@/components/PostCard";
 import CommentSection from "@/components/CommentSection";
+import ClickableImage from "@/components/ClickableImage";
 import { notFound } from "next/navigation";
 
 export default async function PostDetailPage({ params }) {
@@ -45,9 +45,13 @@ export default async function PostDetailPage({ params }) {
         </div>
 
         {post.coverImage && (
-          <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-10">
-            <Image src={post.coverImage} alt={post.title} fill className="object-cover" priority />
-          </div>
+          <ClickableImage
+            src={post.coverImage}
+            alt={post.title}
+            className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-10"
+            imgClassName="object-cover"
+            priority
+          />
         )}
 
         {post.content && (
