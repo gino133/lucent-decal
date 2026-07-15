@@ -27,6 +27,7 @@ const productSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         stock: { type: Number, default: 999 },
         sku: { type: String, default: "" },
+        image: { type: String, default: "" }, // ảnh riêng cho biến thể này, có thì ảnh lớn tự đổi khi chọn
       },
     ],
 
