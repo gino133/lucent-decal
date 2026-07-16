@@ -11,7 +11,7 @@ export default function Navbar({ settings, menu }) {
   const items = menu?.items?.sort((a, b) => a.order - b.order) || [];
   const drawerRef = useRef(null);
 
-  // Đóng menu mobile/tablet khi bấm ra ngoài vùng drawer (không bắt buộc bấm nút X)
+  // bấm ra ngoài drawer thì tự đóng, khỏi cần bấm nút X
   useEffect(() => {
     if (!open) return;
     function handleClickOutside(e) {
@@ -27,10 +27,15 @@ export default function Navbar({ settings, menu }) {
     };
   }, [open]);
 
-  // Khoá cuộn trang nền khi drawer mobile đang mở
+  // khoá cuộn nền khi drawer đang mở
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  // đóng drawer thì menu con cũng đóng theo luôn, lần sau mở lại là về trạng thái ban đầu
+  useEffect(() => {
+    if (!open) setMobileExpanded(null);
   }, [open]);
 
   return (
@@ -50,7 +55,7 @@ export default function Navbar({ settings, menu }) {
             </span>
           ) : (
             <span className="font-heading font-bold text-xl md:text-2xl tracking-tight">
-              {settings?.siteName || "Lucent Glass"}
+              {settings?.siteName || "Website"}
             </span>
           )}
         </Link>
@@ -114,8 +119,8 @@ export default function Navbar({ settings, menu }) {
       {/* Drawer menu trượt từ bên phải — dùng chung cho cả mobile và tablet */}
       <div
         ref={drawerRef}
-        className={`lg:hidden fixed top-0 right-0 h-screen w-80 max-w-[85vw] z-50 bg-background shadow-2xl
-          transition-transform duration-300 ease-in-out overflow-y-auto
+        className={`lg:hidden fixed top-0 right-0 h-[100dvh] w-80 max-w-[85vw] z-50 bg-background shadow-2xl
+          transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain
           ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-on-background/10">
