@@ -76,12 +76,12 @@ function AdminShell({ children }) {
       {/* Sidebar: cố định hiện trên desktop, trượt ra/vào trên mobile */}
       <aside
         ref={sidebarRef}
-        className={`w-72 max-w-[80vw] md:w-64 bg-[#1b1c1c] text-white flex flex-col fixed h-screen z-50 top-0 left-0
+        className={`w-72 max-w-[80vw] md:w-64 bg-[#1b1c1c] text-white flex flex-col fixed h-[100dvh] z-50 top-0 left-0
           transition-transform duration-300 ease-in-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
         <div className="p-6 font-bold text-lg border-b border-white/10 flex items-center justify-between">
-          Lucent Glass CMS
+          Trang quản trị
           <button onClick={() => setSidebarOpen(false)} className="md:hidden p-1" aria-label="Đóng menu">
             <span className="material-symbols-outlined">close</span>
           </button>
