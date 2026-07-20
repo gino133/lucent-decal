@@ -2,12 +2,10 @@ import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// timeout rõ ràng (25s) để phân biệt được 2 tình huống khác nhau:
-// - Lỗi NGAY LẬP TỨC (vài trăm ms) -> thường là CORS/kết nối bị chặn, KHÔNG phải do "ngủ đông"
-// - Lỗi SAU KHI CHỜ ĐỦ 25s -> đúng là timeout/server phản hồi quá chậm
+// timeout 25s để phân biệt lỗi ngay lập tức (CORS/kết nối chặn) với lỗi do chờ quá lâu
 export const api = axios.create({ baseURL: API_URL, timeout: 25000 });
 
-// Gắn token admin (nếu có) cho các request phía client
+// gắn token admin cho mọi request nếu đã đăng nhập
 export function setAuthToken(token) {
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -16,15 +14,14 @@ export function setAuthToken(token) {
   }
 }
 
-// Tự thử lại nếu là lỗi mạng/timeout (không có response) — thường do server
-// free-tier đang "thức dậy" sau thời gian không hoạt động, không phải lỗi thật.
-// Dùng cho các thao tác LƯU quan trọng trong admin (tránh mất công gõ lại nội dung).
+// tự thử lại nếu lỗi mạng/timeout (thường do server free-tier đang thức dậy),
+// dùng cho các thao tác lưu quan trọng để khỏi mất công gõ lại
 export async function apiWithRetry(method, url, data, config, retries = 2) {
   const startedAt = Date.now();
   try {
     return await api[method](url, data, config);
   } catch (err) {
-    err._elapsedMs = Date.now() - startedAt; // gắn thời gian đã chờ để chẩn đoán chính xác hơn
+    err._elapsedMs = Date.now() - startedAt; // lưu lại để báo lỗi cho rõ
     const isNetworkError = !err.response;
     if (isNetworkError && retries > 0) {
       await new Promise((r) => setTimeout(r, 6000));
@@ -34,8 +31,7 @@ export async function apiWithRetry(method, url, data, config, retries = 2) {
   }
 }
 
-// Hiện đúng nguyên nhân kỹ thuật (mã lỗi, thời gian đã chờ) thay vì chỉ đoán chung chung,
-// để nếu vẫn còn lỗi, thông tin hiện ra đã đủ để xác định chính xác nguyên nhân thật.
+// hiện mã lỗi + thời gian chờ thật, để còn chẩn đoán khi có lỗi
 export function friendlyErrorMessage(err) {
   if (!err.response) {
     const ms = err._elapsedMs ?? 0;
@@ -49,10 +45,8 @@ export function friendlyErrorMessage(err) {
   return err.response?.data?.message || err.message || "Có lỗi không xác định xảy ra.";
 }
 
-// ---- Hàm fetch dùng ở Server Components (SSR) ----
-// revalidate: số giây Vercel được phép dùng lại dữ liệu cũ trước khi lấy mới từ backend.
-// Giúp trang tải nhanh hơn nhiều cho khách truy cập, đổi lại nội dung admin sửa
-// có thể mất tối đa `revalidate` giây mới hiển thị (thường vẫn rất nhanh).
+// fetch dùng ở Server Components — revalidate là số giây được cache trước khi lấy
+// dữ liệu mới, giúp trang tải nhanh hơn, đổi lại sửa nội dung có thể chậm hiện vài giây
 async function fetchServer(path, { revalidate = 60, ...opts } = {}) {
   try {
     const res = await fetch(`${API_URL}${path}`, {

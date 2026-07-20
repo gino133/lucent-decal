@@ -38,7 +38,7 @@ async function Block({ block }) {
   if (type === "hero") {
     return (
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-        <div className="grid md:grid-cols-2 gap-10 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div>
             <h1 className="font-heading font-bold text-4xl md:text-6xl leading-tight whitespace-pre-line mb-6">
               {data.title}
@@ -72,7 +72,7 @@ async function Block({ block }) {
     const reverse = data.imagePosition === "right";
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-12">
-        <div className={`grid md:grid-cols-2 gap-10 items-center ${reverse ? "md:[&>*:first-child]:order-2" : ""}`}>
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-10 items-center ${reverse ? "md:[&>*:first-child]:order-2" : ""}`}>
           {data.image && (
             <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden">
               <Image src={data.image} alt={data.title || ""} fill className="object-cover" />
@@ -217,7 +217,7 @@ async function Block({ block }) {
           <h2 className="font-heading text-2xl md:text-3xl font-bold">{data.title || "Tin tức mới nhất"}</h2>
           <Link href="/tin-tuc" className="text-sm font-semibold hover:text-secondary">Xem tất cả →</Link>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {posts.map((p) => <PostCard key={p._id} post={p} />)}
         </div>
       </section>
@@ -234,7 +234,7 @@ async function Block({ block }) {
           <h2 className="font-heading text-2xl md:text-3xl font-bold">{data.title || "Dự án tiêu biểu"}</h2>
           <Link href="/du-an" className="text-sm font-semibold hover:text-secondary">Xem tất cả →</Link>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {projects.map((p) => <ProjectCard key={p._id} project={p} />)}
         </div>
       </section>

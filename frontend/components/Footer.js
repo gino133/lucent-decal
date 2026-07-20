@@ -7,7 +7,7 @@ export default function Footer({ settings, footerMenu }) {
     <footer className="w-full py-16 px-margin-mobile md:px-margin-desktop bg-surface border-t border-on-background/10 mt-24">
       <div className="max-w-container-max mx-auto grid grid-cols-2 md:grid-cols-4 gap-x-gutter gap-y-10 md:gap-y-0">
         <div className="col-span-2 md:col-span-1">
-          <div className="font-heading text-lg font-bold mb-4 uppercase">{settings?.siteName || "Lucent Glass"}</div>
+          <div className="font-heading text-lg font-bold mb-4 uppercase">{settings?.siteName || "Website"}</div>
           <p className="text-sm text-on-background/70 mb-4">{settings?.tagline}</p>
           <div className="flex space-x-4 text-on-background/70">
             {settings?.social?.facebook && (

@@ -58,7 +58,7 @@ export default function CommentSection({ postId }) {
           <p className="text-green-600 text-sm">Cảm ơn bạn! Bình luận của bạn đã được gửi và đang chờ duyệt.</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input
                 required
                 placeholder="Họ và tên"

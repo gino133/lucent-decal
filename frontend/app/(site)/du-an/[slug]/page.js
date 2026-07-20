@@ -36,7 +36,7 @@ export default async function ProjectDetailPage({ params }) {
       </div>
 
       <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-        <div className="grid md:grid-cols-3 gap-6 mb-12 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 text-sm">
           <div><span className="text-on-background/50">Khách hàng</span><p className="font-semibold">{project.client}</p></div>
           <div><span className="text-on-background/50">Địa điểm</span><p className="font-semibold">{project.location}</p></div>
           <div><span className="text-on-background/50">Năm thực hiện</span><p className="font-semibold">{project.year}</p></div>
@@ -46,11 +46,32 @@ export default async function ProjectDetailPage({ params }) {
           <div className="rich-content max-w-3xl mb-12" dangerouslySetInnerHTML={{ __html: project.description }} />
         )}
 
+        {project.materials?.length > 0 && (
+          <div className="mb-12">
+            <h2 className="font-heading text-2xl font-bold mb-6">Vật liệu sử dụng</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+              {project.materials.map((m, i) => (
+                <div key={i} className="border border-on-background/10 rounded-xl overflow-hidden bg-white">
+                  {m.image && (
+                    <div className="relative w-full aspect-[4/3]">
+                      <Image src={m.image} alt={m.name} fill className="object-cover" />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-heading font-semibold mb-1">{m.name}</h3>
+                    {m.description && <p className="text-sm text-on-background/60">{m.description}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {project.beforeAfterImages?.length > 0 && (
           <div className="mb-12">
             <h2 className="font-heading text-2xl font-bold mb-6">So sánh Trước & Sau</h2>
             <p className="text-sm text-on-background/50 mb-6">Kéo thanh trượt để xem sự khác biệt.</p>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {project.beforeAfterImages.map((pair, i) => (
                 <BeforeAfterSlider key={i} before={pair.before} after={pair.after} caption={pair.caption} />
               ))}
@@ -59,18 +80,28 @@ export default async function ProjectDetailPage({ params }) {
         )}
 
         {project.images?.length > 0 && (
-          <div className="grid md:grid-cols-2 gap-4 mb-12">
-            {project.images.map((img, i) => (
-              <ClickableImage
-                key={i}
-                src={img}
-                alt={project.name}
-                images={project.images.map((s) => ({ src: s, alt: project.name }))}
-                index={i}
-                className="relative aspect-[4/3] rounded-xl overflow-hidden w-full"
-                imgClassName="object-cover"
-              />
-            ))}
+          <div className="mb-12">
+            {(() => {
+              // ảnh cũ lưu dạng chuỗi thuần, ảnh mới có thể kèm chú thích — chuẩn hoá về cùng 1 dạng để hiển thị
+              const gallery = project.images.map((img) => (typeof img === "string" ? { url: img, caption: "" } : img));
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {gallery.map((img, i) => (
+                    <div key={i}>
+                      <ClickableImage
+                        src={img.url}
+                        alt={img.caption || project.name}
+                        images={gallery.map((g) => ({ src: g.url, alt: g.caption || project.name }))}
+                        index={i}
+                        className="relative aspect-[4/3] rounded-xl overflow-hidden w-full"
+                        imgClassName="object-cover"
+                      />
+                      {img.caption && <p className="text-sm text-on-background/60 mt-2">{img.caption}</p>}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 

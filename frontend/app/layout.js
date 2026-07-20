@@ -4,13 +4,12 @@ import LocalBusinessSchema from "@/components/LocalBusinessSchema";
 
 export async function generateMetadata() {
   const settings = await getSettings();
-  const title = settings?.seo?.metaTitle || settings?.siteName || "Lucent Glass";
+  const title = settings?.seo?.metaTitle || settings?.siteName || "Website";
   const description = settings?.seo?.metaDescription || settings?.tagline || "";
   const rawSiteUrl = settings?.seo?.siteUrl || "";
   const ogImage = settings?.seo?.ogImage || settings?.logoUrl || undefined;
 
-  // new URL() sẽ ném lỗi và làm sập toàn bộ site nếu admin nhập sai định dạng
-  // (vd: thiếu "https://"), nên phải kiểm tra an toàn trước khi dùng.
+  // new URL() ném lỗi nếu admin nhập sai định dạng (vd thiếu https://), nên phải try/catch
   let metadataBase;
   try {
     metadataBase = rawSiteUrl ? new URL(rawSiteUrl) : undefined;
@@ -28,7 +27,7 @@ export async function generateMetadata() {
       title,
       description,
       ...(siteUrl && { url: siteUrl }),
-      siteName: settings?.siteName || "Lucent Glass",
+      siteName: settings?.siteName || "Website",
       locale: "vi_VN",
       type: "website",
       ...(ogImage && { images: [{ url: ogImage }] }),

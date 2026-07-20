@@ -48,7 +48,7 @@ function VnpayReturnContent() {
         <>
           <span className="material-symbols-outlined text-6xl text-green-500">check_circle</span>
           <h1 className="font-heading text-2xl font-bold mt-4">Thanh toán thành công!</h1>
-          <p className="text-on-background/60 mt-2">Cảm ơn bạn đã đặt hàng tại Lucent Glass.</p>
+          <p className="text-on-background/60 mt-2">Cảm ơn bạn đã đặt hàng.</p>
           <button onClick={() => router.push("/")} className="btn-primary mt-8 px-8 py-3 rounded-lg">Về trang chủ</button>
         </>
       )}

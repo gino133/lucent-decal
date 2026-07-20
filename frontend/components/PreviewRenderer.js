@@ -8,11 +8,9 @@ import ProjectCard from "./ProjectCard";
 import PostCard from "./PostCard";
 import ContactForm from "./ContactForm";
 
-// Bản "song sinh" của BlockRenderer.js dùng riêng cho khung xem trước trực tiếp
-// trong trang quản trị (/admin/trang) — vì đây là component phía client (có thể
-// dùng useState/useEffect để tự lấy dữ liệu thật), trong khi BlockRenderer.js là
-// Server Component (chỉ chạy được khi render trang công khai thật sự).
-// Hai file dùng CHUNG các class Tailwind để đảm bảo xem trước khớp với bản thật.
+// bản twin của BlockRenderer.js nhưng chạy phía client, dùng cho khung xem trước
+// ở /admin/trang (BlockRenderer là Server Component nên không tái dùng trực tiếp được)
+// dùng chung class Tailwind với bản kia để xem trước khớp với bản thật
 export default function PreviewRenderer({ blocks = [] }) {
   const visible = [...blocks]
     .filter((b) => b && b.visible !== false)
@@ -41,7 +39,7 @@ function PreviewBlock({ block }) {
   if (type === "hero") {
     return (
       <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div>
             <h1 className="font-heading font-bold text-3xl md:text-5xl leading-tight whitespace-pre-line mb-4">
               {data.title || <span className="text-on-background/30">(Chưa có tiêu đề)</span>}
@@ -73,7 +71,7 @@ function PreviewBlock({ block }) {
     const reverse = data.imagePosition === "right";
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-8">
-        <div className={`grid md:grid-cols-2 gap-8 items-center ${reverse ? "md:[&>*:first-child]:order-2" : ""}`}>
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center ${reverse ? "md:[&>*:first-child]:order-2" : ""}`}>
           {data.image && (
             <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden">
               <Image src={data.image} alt={data.title || ""} fill className="object-cover" unoptimized />
@@ -195,8 +193,7 @@ function PreviewBlock({ block }) {
   return null;
 }
 
-// Khối tự động (Sản phẩm/Dự án/Tin tức nổi bật) — lấy dữ liệu thật qua API công khai
-// để khung xem trước hiển thị đúng nội dung thật, không phải dữ liệu giả.
+// lấy dữ liệu thật qua API để khối tự động (sản phẩm/dự án/tin tức nổi bật) xem trước cũng đúng
 function PreviewCardsFromApi({ title, fetchUrl, Card, cardProp, cols }) {
   const [items, setItems] = useState(null); // null = đang tải
 

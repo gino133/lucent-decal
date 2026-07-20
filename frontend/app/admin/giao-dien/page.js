@@ -154,7 +154,7 @@ export default function AdminSettingsPage() {
           <input
             value={settings.seo?.metaTitle || ""}
             onChange={(e) => update("seo.metaTitle", e.target.value)}
-            placeholder="VD: Lucent Decal - Thi Công Film Dán Nội Thất Cao Cấp Tại TP.HCM"
+            placeholder="VD: Tên công ty - Mô tả ngắn về dịch vụ chính"
             className="w-full border rounded-lg px-4 py-2"
             maxLength={70}
           />
@@ -182,11 +182,11 @@ export default function AdminSettingsPage() {
             <input
               value={settings.seo?.siteUrl || ""}
               onChange={(e) => update("seo.siteUrl", e.target.value)}
-              placeholder="https://lucent-decal.vercel.app"
+              placeholder="https://ten-mien-cua-ban.vercel.app"
               className="w-full border rounded-lg px-4 py-2"
             />
             <p className="text-xs text-gray-400 mt-1">
-              Dùng cho Schema.org và thẻ canonical. <strong>Phải bắt đầu bằng https://</strong>, vd: https://lucent-decal.vercel.app (không thêm dấu / ở cuối).
+              Dùng cho Schema.org và thẻ canonical. <strong>Phải bắt đầu bằng https://</strong>, vd: https://ten-mien-cua-ban.vercel.app (không thêm dấu / ở cuối).
             </p>
           </div>
           <div>
@@ -201,6 +201,32 @@ export default function AdminSettingsPage() {
               <option value="$$$">$$$ — Cao cấp</option>
             </select>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl p-8 space-y-6 mb-6">
+        <h2 className="font-bold text-lg">Bộ lọc sản phẩm</h2>
+        <p className="text-xs text-gray-500 -mt-4">
+          Danh sách xuất xứ để chọn khi tạo sản phẩm — khách sẽ lọc được theo các giá trị này ở trang Sản phẩm.
+        </p>
+        <div>
+          <label className="block text-sm font-semibold mb-2">Danh sách xuất xứ</label>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {(settings.productOrigins || []).map((o, i) => (
+              <span key={i} className="flex items-center gap-1 bg-gray-100 rounded-full pl-3 pr-1 py-1 text-sm">
+                {o}
+                <button
+                  type="button"
+                  onClick={() => update("productOrigins", settings.productOrigins.filter((_, idx) => idx !== i))}
+                  className="w-5 h-5 rounded-full hover:bg-gray-200 text-gray-500"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            {(settings.productOrigins || []).length === 0 && <p className="text-sm text-gray-400">Chưa có xuất xứ nào.</p>}
+          </div>
+          <OriginAddInput onAdd={(val) => update("productOrigins", [...(settings.productOrigins || []), val])} />
         </div>
       </div>
 
@@ -234,6 +260,32 @@ export default function AdminSettingsPage() {
 
       <button onClick={save} disabled={saving} className="bg-[#fae519] font-bold px-10 py-3 rounded-lg disabled:opacity-50">
         {saving ? "Đang lưu..." : "Lưu tất cả thay đổi"}
+      </button>
+    </div>
+  );
+}
+
+function OriginAddInput({ onAdd }) {
+  const [value, setValue] = useState("");
+
+  function handleAdd() {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    onAdd(trimmed);
+    setValue("");
+  }
+
+  return (
+    <div className="flex gap-2">
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAdd(); } }}
+        placeholder="VD: Việt Nam, Hàn Quốc, Nhật Bản..."
+        className="flex-1 border rounded-lg px-3 py-2 text-sm"
+      />
+      <button type="button" onClick={handleAdd} className="text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg font-semibold">
+        + Thêm
       </button>
     </div>
   );

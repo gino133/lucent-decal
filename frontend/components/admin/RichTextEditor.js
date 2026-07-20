@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
+import MediaLibraryModal from "./MediaLibraryModal";
 
-// Font cho phép chọn — dùng đúng tên CSS font-family thật (giữ dấu cách),
-// trùng với danh sách font hệ thống ở trang Giao diện & Cài đặt.
+// Font cho phép chọn, trùng danh sách font ở trang Giao diện & Cài đặt
 const FONT_CHOICES = [
   "Montserrat", "Inter", "Poppins", "Roboto", "Playfair Display",
   "Lora", "Nunito", "Raleway", "Open Sans", "Merriweather",
@@ -14,9 +14,8 @@ const SIZE_CHOICES = ["12px", "14px", "16px", "18px", "20px", "24px", "28px", "3
 let formatsRegistered = false;
 function registerFormats(Quill) {
   if (formatsRegistered) return;
-  // Đăng ký font/cỡ chữ/canh lề dưới dạng INLINE STYLE (không phải class ql-*),
-  // để HTML xuất ra có style="..." trực tiếp, hiển thị đúng ở mọi nơi — kể cả
-  // trang công khai của website không tải CSS của Quill.
+  // dùng inline style thay vì class ql-* để HTML xuất ra hiển thị đúng luôn,
+  // kể cả ở trang công khai không tải CSS của Quill
   const FontStyle = Quill.import("attributors/style/font");
   FontStyle.whitelist = FONT_CHOICES;
   Quill.register(FontStyle, true);
@@ -43,27 +42,47 @@ const ReactQuill = dynamic(
   }
 );
 
-const TOOLBAR_MODULES = {
-  toolbar: [
-    [{ font: [false, ...FONT_CHOICES] }, { size: [false, ...SIZE_CHOICES] }],
-    ["bold", "italic", "underline", "strike"],
-    [{ header: 2 }, { header: 3 }],
-    [{ color: [] }, { background: [] }],
-    [{ align: [] }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    ["blockquote", "link"],
-    ["clean"],
-  ],
-};
-
 const GOOGLE_FONTS_LINK_ID = "rte-google-fonts";
 
-// Trình soạn thảo trực quan (WYSIWYG) — thay cho việc gõ HTML thủ công.
-// Cho phép đổi font chữ, cỡ chữ, in đậm/nghiêng, màu, canh lề, gắn link... bằng nút bấm.
+// trình soạn thảo trực quan, thay cho gõ HTML tay
 export default function RichTextEditor({ value, onChange, placeholder, minHeight = 180 }) {
-  const modules = useMemo(() => TOOLBAR_MODULES, []);
+  const quillRef = useRef(null);
+  const savedRange = useRef(null);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
-  // Nạp Google Fonts 1 lần cho toàn trang admin để xem trước đúng font khi soạn nội dung
+  // nút chèn ảnh trong thanh công cụ mở thư viện/ tải ảnh mới, thay vì Quill mặc định
+  // (Quill mặc định nhúng thẳng base64 vào bài viết, nặng và không tái sử dụng được ảnh)
+  function openImagePicker() {
+    const editor = quillRef.current?.getEditor();
+    savedRange.current = editor?.getSelection(true) || savedRange.current;
+    setImagePickerOpen(true);
+  }
+
+  function insertImage(url) {
+    const editor = quillRef.current?.getEditor();
+    if (!editor) return;
+    const range = savedRange.current || editor.getSelection(true) || { index: editor.getLength() };
+    editor.insertEmbed(range.index, "image", url, "user");
+    editor.setSelection(range.index + 1);
+  }
+
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ font: [false, ...FONT_CHOICES] }, { size: [false, ...SIZE_CHOICES] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ header: 2 }, { header: 3 }],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["blockquote", "link", "image"],
+        ["clean"],
+      ],
+      handlers: { image: openImagePicker },
+    },
+  }), []);
+
+  // nạp Google Fonts 1 lần để xem trước đúng font lúc soạn
   useEffect(() => {
     if (document.getElementById(GOOGLE_FONTS_LINK_ID)) return;
     const link = document.createElement("link");
@@ -77,19 +96,23 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
     <div className="rte-wrapper">
       <style dangerouslySetInnerHTML={{ __html: pickerLabelCSS() }} />
       <ReactQuill
+        ref={quillRef}
         theme="snow"
         value={value || ""}
         onChange={onChange}
         modules={modules}
         placeholder={placeholder}
       />
-      <style dangerouslySetInnerHTML={{ __html: `.rte-wrapper .ql-editor { min-height: ${minHeight}px; }` }} />
+      <style dangerouslySetInnerHTML={{ __html: `.rte-wrapper .ql-editor { min-height: ${minHeight}px; } .rte-wrapper .ql-editor img { max-width: 100%; }` }} />
+
+      {imagePickerOpen && (
+        <MediaLibraryModal onClose={() => setImagePickerOpen(false)} onSelect={insertImage} />
+      )}
     </div>
   );
 }
 
-// Quill không có sẵn tên hiển thị cho font/cỡ chữ tuỳ biến — phải tự sinh CSS
-// để menu chọn hiện đúng tên (VD: "Playfair Display") thay vì để trống.
+// Quill không tự hiện tên font/cỡ chữ tuỳ biến trong menu chọn, phải tự sinh CSS cho nó
 function pickerLabelCSS() {
   const fontRules = FONT_CHOICES.map(
     (f) => `

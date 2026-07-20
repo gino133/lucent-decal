@@ -2,10 +2,8 @@
 import { useRef } from "react";
 import Link from "next/link";
 
-// Dải danh mục cuộn ngang 1 hàng duy nhất (kiểu Shopee/Tiki) — gọn gàng hơn nhiều
-// so với hiển thị dạng lưới nhiều hàng khi có nhiều danh mục.
-// Trên desktop có thêm 2 nút mũi tên để cuộn bằng chuột (kéo-thả trực tiếp dễ
-// xung đột với việc bấm chọn danh mục, nên dùng nút bấm sẽ an toàn và rõ ràng hơn).
+// dải danh mục cuộn ngang 1 hàng (kiểu Shopee/Tiki), có nút mũi tên cho desktop
+// (không cho kéo-thả trực tiếp vì dễ đụng với việc bấm chọn danh mục)
 export default function CategoryScrollBar({ categories, basePath, activeSlug }) {
   const scrollRef = useRef(null);
 

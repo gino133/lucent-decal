@@ -67,7 +67,7 @@ export default function CartPage() {
     <div className="pt-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto pb-20">
       <h1 className="font-heading text-3xl font-bold mb-10">Giỏ hàng ({items.length} sản phẩm)</h1>
 
-      <div className="grid md:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
         <div className="md:col-span-2 space-y-4">
           {items.map((it) => (
             <div key={it.key} className="flex gap-4 border border-on-background/10 rounded-xl p-4">

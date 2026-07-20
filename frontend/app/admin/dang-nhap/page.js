@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#1b1c1c] px-4">
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-10 w-full max-w-md">
-        <h1 className="font-bold text-2xl mb-2">Lucent Glass CMS</h1>
+        <h1 className="font-bold text-2xl mb-2">Trang quản trị</h1>
         <p className="text-sm text-gray-500 mb-8">Đăng nhập để quản lý nội dung website</p>
         <input
           required

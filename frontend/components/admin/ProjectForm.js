@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import ImageUploader from "./ImageUploader";
+import GalleryWithCaptions from "./GalleryWithCaptions";
 import RichTextEditor from "./RichTextEditor";
 
 export default function ProjectForm({ initial, projectId }) {
@@ -12,7 +13,7 @@ export default function ProjectForm({ initial, projectId }) {
   const [form, setForm] = useState(
     initial || {
       name: "", category: "", client: "", location: "", year: "",
-      coverImage: "", images: [], shortDescription: "", description: "",
+      coverImage: "", images: [], materials: [], shortDescription: "", description: "",
       beforeAfterImages: [], isFeatured: false, isPublished: true,
     }
   );
@@ -36,6 +37,18 @@ export default function ProjectForm({ initial, projectId }) {
     update("beforeAfterImages", (form.beforeAfterImages || []).filter((_, i) => i !== idx));
   }
 
+  function updateMaterial(idx, field, value) {
+    const next = [...(form.materials || [])];
+    next[idx] = { ...next[idx], [field]: value };
+    update("materials", next);
+  }
+  function addMaterial() {
+    update("materials", [...(form.materials || []), { name: "", description: "", image: "" }]);
+  }
+  function removeMaterial(idx) {
+    update("materials", (form.materials || []).filter((_, i) => i !== idx));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
@@ -45,6 +58,7 @@ export default function ProjectForm({ initial, projectId }) {
         category: form.category?._id || form.category || undefined,
         // Bỏ qua các cặp ảnh Trước/Sau chưa nhập đủ 2 ảnh, tránh lỗi hiển thị ngoài site
         beforeAfterImages: (form.beforeAfterImages || []).filter((p) => p.before && p.after),
+        materials: (form.materials || []).filter((m) => m.name?.trim()),
       };
       if (projectId) await api.put(`/projects/${projectId}`, payload);
       else await api.post("/projects", payload);
@@ -63,7 +77,7 @@ export default function ProjectForm({ initial, projectId }) {
         <input required value={form.name} onChange={(e) => update("name", e.target.value)} className="w-full border rounded-lg px-4 py-2" />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-semibold">Danh mục</label>
@@ -98,7 +112,41 @@ export default function ProjectForm({ initial, projectId }) {
 
       <div>
         <label className="block text-sm font-semibold mb-2">Thư viện ảnh dự án</label>
-        <ImageUploader multiple value={form.images} onChange={(v) => update("images", v)} />
+        <p className="text-xs text-gray-500 mb-3">Có thể ghi chú thích cho từng ảnh để hiển thị sinh động hơn ngoài trang chi tiết.</p>
+        <GalleryWithCaptions images={form.images} onChange={(v) => update("images", v)} />
+      </div>
+
+      <div className="border-t pt-6">
+        <label className="block text-sm font-semibold mb-1">Vật liệu sử dụng</label>
+        <p className="text-xs text-gray-500 mb-4">Khai báo các vật liệu đã dùng trong dự án để khách hàng nắm được.</p>
+
+        {(form.materials || []).map((m, idx) => (
+          <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-xs font-semibold text-gray-500">Vật liệu #{idx + 1}</span>
+              <button type="button" onClick={() => removeMaterial(idx)} className="text-red-500 text-xs font-semibold">Xoá</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-3 mb-3">
+              <ImageUploader value={m.image} onChange={(v) => updateMaterial(idx, "image", v)} />
+              <div className="space-y-2">
+                <input
+                  placeholder="Tên vật liệu (VD: Film dán vân gỗ cao cấp)"
+                  value={m.name}
+                  onChange={(e) => updateMaterial(idx, "name", e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+                <textarea
+                  rows={2}
+                  placeholder="Mô tả ngắn (xuất xứ, đặc điểm, lý do lựa chọn...)"
+                  value={m.description}
+                  onChange={(e) => updateMaterial(idx, "description", e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+        <button type="button" onClick={addMaterial} className="text-sm text-blue-600 font-semibold">+ Thêm vật liệu</button>
       </div>
 
       <div className="border-t pt-6">
@@ -115,7 +163,7 @@ export default function ProjectForm({ initial, projectId }) {
               <span className="text-xs font-semibold text-gray-500">Cặp ảnh #{idx + 1}</span>
               <button type="button" onClick={() => removeBA(idx)} className="text-red-500 text-xs font-semibold">Xoá cặp ảnh</button>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
               <div>
                 <label className="block text-xs font-semibold mb-2">Ảnh TRƯỚC *</label>
                 <ImageUploader value={pair.before} onChange={(v) => updateBA(idx, "before", v)} />
@@ -126,7 +174,7 @@ export default function ProjectForm({ initial, projectId }) {
               </div>
             </div>
             <input
-              placeholder="Chú thích (VD: Phòng khách - trước và sau khi dán decal)"
+              placeholder="Chú thích (VD: Phòng khách - trước và sau khi cải tạo)"
               value={pair.caption}
               onChange={(e) => updateBA(idx, "caption", e.target.value)}
               className="w-full border rounded-lg px-3 py-2 text-sm"

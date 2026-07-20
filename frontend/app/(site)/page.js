@@ -7,7 +7,7 @@ export default async function HomePage() {
   if (!page) {
     return (
       <div className="pt-40 text-center px-margin-mobile">
-        <h1 className="font-heading text-3xl font-bold mb-4">Chào mừng đến với Lucent Glass</h1>
+        <h1 className="font-heading text-3xl font-bold mb-4">Chào mừng</h1>
         <p className="text-on-background/60">
           Chưa có nội dung trang chủ. Vào <code>/admin</code> để thiết lập nội dung.
         </p>

@@ -12,14 +12,14 @@ export default async function ProjectsPage({ searchParams }) {
   return (
     <div className="pt-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto pb-20">
       <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">Dự án</h1>
-      <p className="text-on-background/60 mb-8">Những công trình tiêu biểu đã được chúng tôi thi công.</p>
+      <p className="text-on-background/60 mb-8">Những công trình tiêu biểu đã thực hiện.</p>
 
       <CategoryScrollBar categories={categories} basePath="/du-an" activeSlug={category} />
 
       {projects.length === 0 ? (
         <p className="text-on-background/50 text-center py-20">Chưa có dự án nào.</p>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {projects.map((p, i) => <ProjectCard key={p._id} project={p} size={i === 0 ? "large" : "normal"} />)}
         </div>
       )}

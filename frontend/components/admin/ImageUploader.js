@@ -3,11 +3,13 @@ import { useState } from "react";
 import Image from "next/image";
 import { apiWithRetry, friendlyErrorMessage } from "@/lib/api";
 import { compressImage } from "@/lib/imageCompress";
+import MediaLibraryModal from "./MediaLibraryModal";
 
 // component upload ảnh dùng chung, 1 ảnh hoặc nhiều ảnh đều được
 export default function ImageUploader({ value, onChange, multiple = false }) {
   const [uploading, setUploading] = useState(false);
   const [progressText, setProgressText] = useState("");
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const images = multiple ? (value || []) : value ? [value] : [];
 
   async function handleFiles(e) {
@@ -66,10 +68,30 @@ export default function ImageUploader({ value, onChange, multiple = false }) {
           </div>
         ))}
       </div>
-      <label className="inline-block text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg cursor-pointer">
-        {uploading ? progressText || "Đang xử lý..." : "+ Tải ảnh lên"}
-        <input type="file" accept="image/*" multiple={multiple} className="hidden" onChange={handleFiles} disabled={uploading} />
-      </label>
+      <div className="flex gap-2">
+        <label className="inline-block text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg cursor-pointer">
+          {uploading ? progressText || "Đang xử lý..." : "+ Tải ảnh lên"}
+          <input type="file" accept="image/*" multiple={multiple} className="hidden" onChange={handleFiles} disabled={uploading} />
+        </label>
+        <button
+          type="button"
+          onClick={() => setLibraryOpen(true)}
+          className="inline-block text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg"
+        >
+          📁 Thư viện
+        </button>
+      </div>
+
+      {libraryOpen && (
+        <MediaLibraryModal
+          multiple={multiple}
+          onClose={() => setLibraryOpen(false)}
+          onSelect={(picked) => {
+            if (multiple) onChange([...(value || []), ...picked]);
+            else onChange(picked);
+          }}
+        />
+      )}
     </div>
   );
 }

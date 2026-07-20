@@ -62,3 +62,9 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
 }
+
+/* ảnh trong pop-up mờ dần khi chuyển qua ảnh khác cho mượt */
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

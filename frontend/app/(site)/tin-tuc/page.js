@@ -17,14 +17,14 @@ export default async function BlogListPage({ searchParams }) {
   return (
     <div className="pt-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto pb-20">
       <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">Tin tức</h1>
-      <p className="text-on-background/60 mb-8">Cập nhật thông tin, kiến thức và dự án mới nhất từ Lucent Decal.</p>
+      <p className="text-on-background/60 mb-8">Cập nhật thông tin, kiến thức và tin mới nhất.</p>
 
       <CategoryScrollBar categories={categories} basePath="/tin-tuc" activeSlug={category} />
 
       {posts.length === 0 ? (
         <p className="text-on-background/50 text-center py-20">Chưa có bài viết nào.</p>
       ) : (
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {posts.map((p) => <PostCard key={p._id} post={p} />)}
         </div>
       )}

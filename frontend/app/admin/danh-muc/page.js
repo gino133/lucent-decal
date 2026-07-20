@@ -82,7 +82,7 @@ export default function AdminCategoriesPage() {
         ))}
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
           {loading && <p className="text-gray-400">Đang tải...</p>}
           {!loading && categories.length === 0 && <p className="text-gray-400">Chưa có danh mục nào.</p>}

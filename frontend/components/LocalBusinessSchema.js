@@ -1,6 +1,5 @@
-// Sinh mã Local Business Schema (JSON-LD) từ dữ liệu Cài đặt (Setting) do admin nhập,
-// giúp Google hiểu đây là 1 doanh nghiệp địa phương (tên, địa chỉ, SĐT, giờ mở cửa, mạng xã hội...)
-// Tham khảo: https://schema.org/LocalBusiness
+// sinh JSON-LD Local Business Schema từ Cài đặt admin nhập, giúp Google hiểu
+// đây là doanh nghiệp local. Xem thêm: https://schema.org/LocalBusiness
 export default function LocalBusinessSchema({ settings }) {
   if (!settings) return null;
 
@@ -10,7 +9,7 @@ export default function LocalBusinessSchema({ settings }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
-    name: settings.siteName || "Lucent Glass",
+    name: settings.siteName || "Website",
     description: settings.seo?.metaDescription || settings.tagline || "",
     ...(siteUrl && { "@id": siteUrl, url: siteUrl }),
     ...(settings.logoUrl && { image: settings.logoUrl, logo: settings.logoUrl }),

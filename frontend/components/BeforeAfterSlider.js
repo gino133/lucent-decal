@@ -2,7 +2,7 @@
 import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
 
-// Thanh trượt so sánh ảnh Trước/Sau — kéo bằng chuột hoặc chạm (mobile) để lộ dần ảnh "Sau".
+// kéo thanh này (chuột hoặc chạm) để so sánh ảnh trước/sau
 export default function BeforeAfterSlider({ before, after, caption }) {
   const [position, setPosition] = useState(50); // % vị trí thanh trượt, từ trái sang
   const containerRef = useRef(null);

@@ -9,7 +9,7 @@ export default function ProductDetailInteractive({ product }) {
   const [variantImage, setVariantImage] = useState(null);
 
   return (
-    <div className="grid md:grid-cols-2 gap-10">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
       <ProductGallery images={product.images || []} name={product.name} overrideImage={variantImage} />
       <div>
         {product.category?.name && (
@@ -17,6 +17,11 @@ export default function ProductDetailInteractive({ product }) {
         )}
         <h1 className="font-heading text-3xl md:text-4xl font-bold mt-2 mb-4">{product.name}</h1>
         <p className="text-on-background/70 mb-6">{product.shortDescription}</p>
+        {product.origin && (
+          <p className="text-sm text-on-background/60 mb-6 -mt-4">
+            Xuất xứ: <span className="font-medium text-on-background">{product.origin}</span>
+          </p>
+        )}
 
         <ProductPurchasePanel product={product} onVariantChange={(v) => setVariantImage(v?.image || null)} />
 

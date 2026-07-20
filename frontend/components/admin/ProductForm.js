@@ -15,10 +15,11 @@ function cartesianProduct(arrays) {
 export default function ProductForm({ initial, productId }) {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
+  const [origins, setOrigins] = useState([]);
   // sản phẩm cũ (trước khi có biến thể) sẽ không có optionTypes/variants nên phải
   // set mặc định [] không thì lỗi, với đổi optionTypes qua dạng text cho dễ sửa
   const [form, setForm] = useState(() => ({
-    name: "", category: "", price: "", unit: "m²",
+    name: "", category: "", price: "", unit: "m²", origin: "",
     shortDescription: "", description: "", images: [],
     specs: [], isNew: false, isFeatured: true, isPublished: true,
     ...initial,
@@ -32,6 +33,7 @@ export default function ProductForm({ initial, productId }) {
 
   useEffect(() => {
     api.get("/categories?type=product").then((res) => setCategories(res.data));
+    api.get("/settings").then((res) => setOrigins(res.data.productOrigins || []));
   }, []);
 
   function update(field, value) { setForm((f) => ({ ...f, [field]: value })); }
@@ -130,12 +132,12 @@ export default function ProductForm({ initial, productId }) {
         <input required value={form.name} onChange={(e) => update("name", e.target.value)} className="w-full border rounded-lg px-4 py-2" />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-semibold">Danh mục</label>
             <Link href="/admin/danh-muc" target="_blank" className="text-xs text-blue-600 font-semibold hover:underline">
-              + Quản lý danh mục
+              + Quản lý
             </Link>
           </div>
           <select value={form.category?._id || form.category || ""} onChange={(e) => update("category", e.target.value)} className="w-full border rounded-lg px-4 py-2">
@@ -144,14 +146,26 @@ export default function ProductForm({ initial, productId }) {
           </select>
         </div>
         <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-semibold">Xuất xứ</label>
+            <Link href="/admin/giao-dien" target="_blank" className="text-xs text-blue-600 font-semibold hover:underline">
+              + Quản lý
+            </Link>
+          </div>
+          <select value={form.origin || ""} onChange={(e) => update("origin", e.target.value)} className="w-full border rounded-lg px-4 py-2">
+            <option value="">-- Chọn --</option>
+            {origins.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+        <div>
           <label className="block text-sm font-semibold mb-2">
-            Giá (VNĐ) * {form.variants?.length > 0 && <span className="text-xs text-gray-400 font-normal">(giá "từ", khi chưa chọn tuỳ chọn)</span>}
+            Giá (VNĐ) * {form.variants?.length > 0 && <span className="text-xs text-gray-400 font-normal">("từ")</span>}
           </label>
           <input required type="number" value={form.price} onChange={(e) => update("price", e.target.value)} className="w-full border rounded-lg px-4 py-2" />
         </div>
         <div>
           <label className="block text-sm font-semibold mb-2">
-            Đơn vị {form.variants?.length > 0 && <span className="text-xs text-gray-400 font-normal">(khi không dùng biến thể)</span>}
+            Đơn vị {form.variants?.length > 0 && <span className="text-xs text-gray-400 font-normal">(nếu không biến thể)</span>}
           </label>
           <input value={form.unit} onChange={(e) => update("unit", e.target.value)} className="w-full border rounded-lg px-4 py-2" placeholder="cái, kg, giờ, m²..." />
         </div>

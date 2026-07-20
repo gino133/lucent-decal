@@ -2,10 +2,8 @@ import { getPage } from "@/lib/api";
 import BlockRenderer from "@/components/BlockRenderer";
 import { notFound } from "next/navigation";
 
-// Route "bắt tất cả" cho các trang tuỳ chỉnh tạo trong /admin/trang,
-// cho phép truy cập bằng đường dẫn gọn /<slug> thay vì /trang/<slug>.
-// Next.js luôn ưu tiên các route cố định (gioi-thieu, san-pham, du-an...)
-// trước khi rơi vào route động này, nên không xung đột với các trang có sẵn.
+// route bắt hết cho trang tự tạo ở /admin/trang, cho đường dẫn gọn /<slug>.
+// Next.js ưu tiên route cố định trước nên không đụng gì các trang có sẵn.
 export default async function CustomRootPage({ params }) {
   const page = await getPage(params.slug);
   if (!page) return notFound();

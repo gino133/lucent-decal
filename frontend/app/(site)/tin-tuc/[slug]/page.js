@@ -72,7 +72,7 @@ export default async function PostDetailPage({ params }) {
       {related.length > 0 && (
         <div className="max-w-container-max mx-auto mt-20">
           <h2 className="font-heading text-2xl font-bold mb-8">Bài viết liên quan</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {related.map((p) => <PostCard key={p._id} post={p} />)}
           </div>
         </div>

@@ -3,12 +3,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
-// Các đường dẫn có sẵn nội dung/trang danh sách riêng (không phải trang tự do soạn ở /admin/trang)
+// mấy đường dẫn này đã có trang riêng, không phải trang tự soạn ở /admin/trang
 const NON_CONTENT_PATHS = ["/", "/san-pham", "/du-an", "/tin-tuc", "/gio-hang"];
 
-// Từ 1 URL menu (VD: "/dich-vu/thi-cong" hoặc "/trang/dich-vu-a"), suy ra slug trang nội dung
-// tương ứng để mở thẳng sang /admin/trang chỉnh sửa. Trả về null nếu URL này không áp dụng được
-// (đường dẫn ngoài, có tham số ?..., trang danh sách động, hoặc mục chỉ là tiêu đề nhóm "#").
+// từ URL menu suy ra slug trang tương ứng để mở thẳng /admin/trang chỉnh sửa,
+// trả null nếu không áp dụng được (link ngoài, có ?query, trang danh sách, hoặc chỉ là "#")
 function getContentEditHref(url, label) {
   if (!url || url === "#" || url.startsWith("http") || url.includes("?")) return null;
   if (NON_CONTENT_PATHS.includes(url)) return null;
@@ -52,7 +51,7 @@ export default function AdminMenuPage() {
   );
 }
 
-// ---------- Menu chính: danh sách các mục, mỗi mục có thể có menu con (dropdown) ----------
+// -- menu chính: mỗi mục có thể có thêm menu con dạng dropdown --
 function MainMenuEditor() {
   const [items, setItems] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -177,7 +176,7 @@ function MainMenuEditor() {
   );
 }
 
-// ---------- Menu chân trang: nhóm (label) chứa các liên kết con (children) ----------
+// -- menu chân trang: mỗi nhóm chứa các liên kết con --
 function FooterMenuEditor() {
   const [groups, setGroups] = useState([]);
   const [saving, setSaving] = useState(false);

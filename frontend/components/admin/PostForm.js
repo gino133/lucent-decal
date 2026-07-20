@@ -12,7 +12,7 @@ export default function PostForm({ initial, postId }) {
   const [form, setForm] = useState(
     initial || {
       title: "", category: "", excerpt: "", content: "", coverImage: "",
-      tags: [], author: "Lucent Glass", isFeatured: false, isPublished: true,
+      tags: [], author: "", isFeatured: false, isPublished: true,
     }
   );
   const [tagInput, setTagInput] = useState((initial?.tags || []).join(", "));
@@ -83,7 +83,7 @@ export default function PostForm({ initial, postId }) {
 
       <div>
         <label className="block text-sm font-semibold mb-2">Thẻ (tags, cách nhau bằng dấu phẩy)</label>
-        <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder="decal kính, xu hướng, thi công" className="w-full border rounded-lg px-4 py-2" />
+        <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder="xu hướng, mẹo hay, hướng dẫn" className="w-full border rounded-lg px-4 py-2" />
       </div>
 
       <div className="flex gap-6">

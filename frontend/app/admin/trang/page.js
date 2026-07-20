@@ -5,7 +5,7 @@ import { api, apiWithRetry, friendlyErrorMessage } from "@/lib/api";
 import BlockEditor, { BLOCK_TYPE_LABELS } from "@/components/admin/BlockEditor";
 import PreviewRenderer from "@/components/PreviewRenderer";
 
-// Các trang cố định luôn có link cứng ngoài website (không theo /<slug>)
+// mấy trang này có link cứng riêng, không theo dạng /<slug>
 const FIXED_PAGE_LABELS = {
   home: "Trang chủ", "gioi-thieu": "Giới thiệu",
   "ho-so-nang-luc": "Hồ sơ năng lực", "lien-he": "Liên hệ",
@@ -35,10 +35,10 @@ function AdminPagesPage() {
   const [loadingList, setLoadingList] = useState(true);
   const [newSlug, setNewSlug] = useState("");
   const [newTitle, setNewTitle] = useState("");
-  // Nếu được mở từ trang Menu kèm ?slug=...&title=..., mở thẳng đến đúng trang đó
+  // mở từ trang Menu kèm ?slug=...&title=... thì nhảy thẳng vào đúng trang đó
   const initialSlug = searchParams.get("slug") || "home";
   const [activeSlug, setActiveSlug] = useState(initialSlug);
-  // Lưu tạm tên các trang được mở qua liên kết nhưng chưa từng lưu (chưa có trong DB)
+  // lưu tạm tên trang mở qua link nhưng chưa lưu vào DB lần nào
   const [pendingLabels, setPendingLabels] = useState(() => {
     const t = searchParams.get("title");
     return t && initialSlug !== "home" ? { [initialSlug]: t } : {};
@@ -48,8 +48,7 @@ function AdminPagesPage() {
   const [creating, setCreating] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
-  // Luôn tải lại danh sách trang THẬT từ server (không dùng state tạm client)
-  // để sau khi F5 vẫn thấy đầy đủ các trang đã tạo, kể cả trang tuỳ chỉnh.
+  // luôn lấy danh sách trang thật từ server, F5 vẫn thấy đủ kể cả trang tự tạo
   async function loadPageList() {
     setLoadingList(true);
     try {
@@ -105,8 +104,8 @@ function AdminPagesPage() {
     }
   }
 
-  // Tạo trang mới: LƯU NGAY xuống database (không chỉ thêm tạm trên giao diện)
-  // để đường dẫn /<slug> hoạt động ngay và trang xuất hiện lại sau khi F5.
+  // tạo trang là lưu DB ngay, không chỉ thêm tạm trên giao diện,
+  // để link /<slug> chạy được liền và F5 vẫn còn
   async function createCustomPage() {
     const slug = newSlug.trim()
       .toLowerCase()
@@ -149,9 +148,8 @@ function AdminPagesPage() {
     return FIXED_PAGE_LABELS[slug] || customPagesMap[slug] || pendingLabels[slug] || slug;
   }
 
-  // Danh sách tab: các trang cố định luôn hiện trước, sau đó tới các trang tuỳ chỉnh
-  // (loại các slug trùng với trang cố định để tránh hiện 2 lần).
-  // Nếu đang mở 1 trang qua liên kết (chưa từng lưu), vẫn hiện tab của nó ngay.
+  // tab trang cố định hiện trước, trang tự tạo hiện sau (bỏ trùng slug),
+  // trang đang mở qua link mà chưa lưu cũng vẫn hiện tab luôn
   const customSlugs = allPages.map((p) => p.slug).filter((s) => !FIXED_PAGE_LABELS[s]);
   if (!FIXED_PAGE_LABELS[activeSlug] && !customSlugs.includes(activeSlug)) {
     customSlugs.push(activeSlug);
@@ -273,8 +271,7 @@ function AdminPagesPage() {
   );
 }
 
-// Khung mô phỏng trình duyệt bao quanh phần xem trước, giúp dễ phân biệt
-// đây là "bản xem trước" chứ không phải phần điều khiển của trang quản trị.
+// khung giả trình duyệt bao quanh phần xem trước cho dễ phân biệt với phần soạn thảo
 function PreviewFrame({ page }) {
   return (
     <div className="border border-gray-300 rounded-xl overflow-hidden shadow-sm">
