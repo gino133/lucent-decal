@@ -5,7 +5,8 @@ const { runSeed } = require("./utils/seedData");
 async function run() {
   await connectDB();
   const force = process.argv.includes("--force");
-  const log = await runSeed({ force });
+  const resetPassword = process.argv.includes("--reset-password");
+  const log = await runSeed({ force, resetPassword });
   log.forEach((line) => console.log("✅", line));
   console.log("🌱 Hoàn tất!");
   process.exit(0);

@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const settingSchema = new mongoose.Schema(
   {
-    siteName: { type: String, default: "Lucent Glass" },
-    tagline: { type: String, default: "Kiến tạo không gian kiến trúc" },
+    siteName: { type: String, default: "Website của bạn" },
+    tagline: { type: String, default: "Mô tả ngắn gọn về doanh nghiệp của bạn" },
     logoUrl: { type: String, default: "" },
     faviconUrl: { type: String, default: "" },
     // "text" = hiện tên thương hiệu, "logo" = hiện ảnh logo trên navbar
@@ -26,7 +26,7 @@ const settingSchema = new mongoose.Schema(
 
     contact: {
       phone: { type: String, default: "+84 (0) 90 123 4567" },
-      email: { type: String, default: "hello@lucentglass.vn" },
+      email: { type: String, default: "" },
       address: { type: String, default: "" },
       workingHours: { type: String, default: "" },
       mapEmbedUrl: { type: String, default: "" },
@@ -43,11 +43,11 @@ const settingSchema = new mongoose.Schema(
       metaTitle: { type: String, default: "" },
       metaDescription: { type: String, default: "" },
       ogImage: { type: String, default: "" },
-      siteUrl: { type: String, default: "" }, // vd: https://lucent-decal.vercel.app — dùng cho Schema.org & canonical URL
+      siteUrl: { type: String, default: "" }, // domain thật của site, vd: https://ten-mien.vercel.app — dùng cho Schema.org & canonical URL
       priceRange: { type: String, default: "$$" }, // dùng cho Local Business Schema, vd: "$", "$$", "$$$"
     },
 
-    footerText: { type: String, default: "© 2026 Lucent Glass. Kiến Trúc Hoàn Hảo." },
+    footerText: { type: String, default: "© 2026 Website của bạn. Mọi quyền được bảo lưu." },
     footerContactHeading: { type: String, default: "Liên hệ" },
 
     shipping: {
@@ -55,6 +55,9 @@ const settingSchema = new mongoose.Schema(
       flatShippingFee: { type: Number, default: 50000 },
       vatPercent: { type: Number, default: 10 },
     },
+
+    // danh sách xuất xứ để chọn khi tạo sản phẩm, quản lý ở trang Giao diện & Cài đặt
+    productOrigins: [{ type: String }],
   },
   { timestamps: true }
 );

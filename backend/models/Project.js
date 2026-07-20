@@ -9,7 +9,17 @@ const projectSchema = new mongoose.Schema(
     location: { type: String, default: "" },
     year: { type: String, default: "" },
     coverImage: { type: String, default: "" },
-    images: [{ type: String }],
+    // ảnh trong thư viện: mỗi ảnh có thể chỉ là URL (dữ liệu cũ) hoặc {url, caption} (có chú thích) —
+    // để Mixed cho không bị lỗi ép kiểu với dữ liệu cũ đã lưu dạng chuỗi từ trước
+    images: [mongoose.Schema.Types.Mixed],
+    // Vật liệu sử dụng trong dự án, hiện cho khách xem ở trang chi tiết
+    materials: [
+      {
+        name: { type: String, required: true },
+        description: { type: String, default: "" },
+        image: { type: String, default: "" },
+      },
+    ],
     // Cặp ảnh so sánh Trước/Sau, hiển thị dạng thanh trượt kéo được ở trang chi tiết dự án
     beforeAfterImages: [
       {

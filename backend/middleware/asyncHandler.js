@@ -1,7 +1,6 @@
-// Bọc quanh mỗi route "async (req,res) => {...}" để tự động bắt lỗi và
-// chuyển sang middleware xử lý lỗi chung (trả JSON rõ ràng cho client),
-// thay vì để lỗi "rơi tự do" thành unhandledRejection có thể ảnh hưởng cả server.
-// Cách dùng: router.get("/", asyncHandler(async (req, res) => { ... }));
+// Bọc route async lại để lỗi tự nhảy qua middleware xử lý lỗi chung,
+// không thì 1 lỗi quên try/catch có thể làm sập cả server.
+// Dùng: router.get("/", asyncHandler(async (req, res) => { ... }));
 function asyncHandler(fn) {
   return function (req, res, next) {
     Promise.resolve(fn(req, res, next)).catch(next);

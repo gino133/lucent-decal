@@ -9,7 +9,7 @@ const postSchema = new mongoose.Schema(
     content: { type: String, default: "" }, // Nội dung HTML đầy đủ
     coverImage: { type: String, default: "" },
     tags: [{ type: String }],
-    author: { type: String, default: "Lucent Glass" },
+    author: { type: String, default: "Admin" },
     isFeatured: { type: Boolean, default: false },
     isPublished: { type: Boolean, default: true },
     views: { type: Number, default: 0 },

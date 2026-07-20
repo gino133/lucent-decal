@@ -3,15 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
-// LỚP BẢO VỆ TOÀN HỆ THỐNG — quan trọng nhất trong file này.
-// Mặc định, nếu 1 route "async (req,res) => {...}" ném lỗi mà không có try/catch,
-// Node.js coi đó là "unhandledRejection" và (từ Node 15+) sẽ TỰ TẮT LUÔN CẢ TIẾN
-// TRÌNH SERVER — nghĩa là 1 request lỗi có thể làm sập toàn bộ website cho MỌI người
-// dùng, không chỉ riêng người vừa thao tác. Đây chính là nguyên nhân gây lỗi 502/503
-// trước đó (lưu 1 khối nội dung có "type" không hợp lệ theo schema MongoDB).
-// Hai listener dưới đây đảm bảo: dù có lỗi tương tự xảy ra ở bất kỳ đâu trong tương lai
-// (kể cả những chỗ chưa kịp bọc try/catch), server CHỈ log lỗi ra và tiếp tục chạy,
-// không bao giờ sập toàn bộ vì 1 request lỗi nữa.
+// Chặn lỗi làm sập cả server: bình thường nếu 1 route quên try/catch mà lỗi,
+// Node sẽ tự tắt luôn tiến trình (ảnh hưởng tới mọi người dùng, không riêng ai).
+// 2 listener này giữ cho server chỉ log lỗi rồi chạy tiếp, không bị sập nữa.
 process.on("unhandledRejection", (reason) => {
   console.error("⚠️ Unhandled Promise Rejection (đã chặn, server vẫn tiếp tục chạy):", reason);
 });
@@ -31,7 +25,7 @@ app.use(
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => res.json({ message: "Lucent Glass API đang chạy 🚀" }));
+app.get("/", (req, res) => res.json({ message: "API đang chạy 🚀" }));
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 app.use("/api/auth", require("./routes/auth"));
@@ -46,6 +40,7 @@ app.use("/api/comments", require("./routes/comments"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/contacts", require("./routes/contacts"));
 app.use("/api/upload", require("./routes/upload"));
+app.use("/api/media", require("./routes/media"));
 app.use("/api/seed", require("./routes/seed"));
 
 // 404
@@ -55,9 +50,8 @@ app.use((req, res) => res.status(404).json({ message: "Không tìm thấy endpoi
 app.use((err, req, res, next) => {
   console.error(err);
 
-  // Lỗi dữ liệu không hợp lệ theo schema MongoDB (VD: "type" của 1 khối nội dung
-  // không nằm trong danh sách cho phép) — trả về 400 kèm thông tin rõ ràng,
-  // thay vì để rơi vào lỗi 500 chung chung khó chẩn đoán.
+  // Lỗi dữ liệu sai schema MongoDB (vd "type" không nằm trong danh sách cho phép)
+  // thì trả 400 dễ hiểu, thay vì rơi vào lỗi 500 chung chung.
   if (err.name === "ValidationError") {
     const details = Object.values(err.errors || {}).map((e) => e.message);
     return res.status(400).json({ message: "Dữ liệu không hợp lệ: " + details.join("; ") });

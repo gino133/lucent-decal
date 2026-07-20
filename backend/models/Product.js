@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema(
     description: { type: String, default: "" }, // HTML rich text
     price: { type: Number, required: true }, // Giá cơ bản / "giá từ" khi sản phẩm có biến thể
     unit: { type: String, default: "m²" }, // m², cuộn, m... (dùng khi KHÔNG có biến thể)
+    origin: { type: String, default: "" }, // Xuất xứ — chọn từ danh sách quản lý ở Cài đặt
     images: [{ type: String }],
     specs: [{ label: String, value: String }],
 

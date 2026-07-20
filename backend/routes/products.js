@@ -6,9 +6,15 @@ const { resolveCategoryId } = require("../utils/resolveCategoryFilter");
 const asyncHandler = require("../middleware/asyncHandler");
 const router = express.Router();
 
-// GET /api/products?category=&search=&featured=&page=&limit=
+const SORT_OPTIONS = {
+  newest: { order: 1, createdAt: -1 },
+  price_asc: { price: 1 },
+  price_desc: { price: -1 },
+};
+
+// GET /api/products?category=&origin=&sort=&search=&featured=&page=&limit=
 router.get("/", asyncHandler(async (req, res) => {
-  const { category, search, featured, page = 1, limit = 16 } = req.query;
+  const { category, origin, sort, search, featured, page = 1, limit = 16 } = req.query;
   const filter = { isPublished: true };
 
   if (category) {
@@ -16,12 +22,17 @@ router.get("/", asyncHandler(async (req, res) => {
     if (!categoryId) return res.json({ items: [], total: 0, page: Number(page), pages: 0 });
     filter.category = categoryId;
   }
+  if (origin) {
+    // hỗ trợ chọn nhiều xuất xứ cùng lúc, cách nhau bằng dấu phẩy
+    filter.origin = { $in: origin.split(",").map((o) => o.trim()).filter(Boolean) };
+  }
   if (featured) filter.isFeatured = true;
   if (search) filter.$text = { $search: search };
 
+  const sortBy = SORT_OPTIONS[sort] || SORT_OPTIONS.newest;
   const skip = (Number(page) - 1) * Number(limit);
   const [items, total] = await Promise.all([
-    Product.find(filter).populate("category").sort({ order: 1, createdAt: -1 }).skip(skip).limit(Number(limit)),
+    Product.find(filter).populate("category").sort(sortBy).skip(skip).limit(Number(limit)),
     Product.countDocuments(filter),
   ]);
   res.json({ items, total, page: Number(page), pages: Math.ceil(total / limit) });

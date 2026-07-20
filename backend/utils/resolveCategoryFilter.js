@@ -1,15 +1,13 @@
 const mongoose = require("mongoose");
 const Category = require("../models/Category");
 
-// Link ngoài website gửi category dưới dạng SLUG (vd: "van-go"),
-// nhưng dữ liệu Product/Project/Post lưu category dưới dạng ObjectId.
-// Hàm này nhận giá trị category từ query string (có thể là slug HOẶC id)
-// và trả về ObjectId tương ứng để lọc đúng, hoặc null nếu không tìm thấy.
+// Ngoài site gửi category bằng slug (vd "van-go"), nhưng DB lưu bằng ObjectId.
+// Hàm này nhận cả 2 kiểu, trả về đúng ObjectId để lọc, null nếu không khớp.
 async function resolveCategoryId(categoryParam) {
-  if (!categoryParam) return undefined; // không lọc theo danh mục
+  if (!categoryParam) return undefined;
   if (mongoose.Types.ObjectId.isValid(categoryParam)) return categoryParam;
   const cat = await Category.findOne({ slug: categoryParam });
-  return cat ? cat._id : null; // null = có truyền nhưng không khớp danh mục nào -> trả rỗng
+  return cat ? cat._id : null;
 }
 
 module.exports = { resolveCategoryId };
