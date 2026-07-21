@@ -21,6 +21,7 @@ body {
   background-color: var(--color-background);
   color: var(--color-on-background);
   font-family: var(--font-body);
+  overflow-x: hidden; /* chặn tràn ngang toàn trang nếu có phần tử con quá khổ */
 }
 
 .glass-card {
@@ -50,9 +51,63 @@ body {
 }
 
 /* Rich text block content (từ admin) */
-.rich-content h2 { font-family: var(--font-heading); font-size: 1.75rem; font-weight: 700; margin: 1.5rem 0 1rem; }
-.rich-content p { margin-bottom: 1rem; line-height: 1.7; }
-.rich-content ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+.rich-content {
+  max-width: 100%;
+  overflow-wrap: break-word; /* chữ tự xuống dòng, không tràn ra ngoài khung */
+  word-break: break-word;
+}
+.rich-content * {
+  max-width: 100%;
+}
+.rich-content h1,
+.rich-content h2,
+.rich-content h3,
+.rich-content h4 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.5rem 0 1rem;
+  overflow-wrap: break-word;
+}
+.rich-content h1 { font-size: 2rem; }
+.rich-content h2 { font-size: 1.75rem; }
+.rich-content h3 { font-size: 1.375rem; }
+.rich-content h4 { font-size: 1.125rem; }
+.rich-content p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+.rich-content ul,
+.rich-content ol {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+.rich-content ol { list-style: decimal; }
+.rich-content li { overflow-wrap: break-word; }
+.rich-content a { overflow-wrap: break-word; word-break: break-all; }
+.rich-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+.rich-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto; /* bảng rộng thì cuộn ngang trong chính nó, không đẩy vỡ trang */
+}
+.rich-content blockquote {
+  border-left: 3px solid var(--color-outline);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--color-primary);
+}
+@media (max-width: 767px) {
+  .rich-content h1 { font-size: 1.5rem; }
+  .rich-content h2 { font-size: 1.375rem; }
+  .rich-content h3 { font-size: 1.125rem; }
+}
 
 /* Ẩn thanh cuộn nhưng vẫn cuộn được — dùng cho dải danh mục cuộn ngang */
 .no-scrollbar {
