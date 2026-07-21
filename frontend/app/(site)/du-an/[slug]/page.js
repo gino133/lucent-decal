@@ -11,26 +11,33 @@ export default async function ProjectDetailPage({ params }) {
 
   return (
     <div className="pt-32 pb-20">
-      <div className="relative w-full aspect-[16/7] mb-10">
-        {project.coverImage && <Image src={project.coverImage} alt={project.name} fill className="object-cover" priority />}
-        <div className="absolute inset-0 bg-black/30 flex flex-col justify-between p-margin-mobile md:px-margin-desktop">
-          <div className="max-w-container-max mx-auto w-full pt-24">
-            <div className="text-sm text-white/80 flex items-center gap-1">
-              <Link href="/" className="hover:text-secondary hover:underline">Trang chủ</Link>
-              <span>/</span>
-              <Link href="/du-an" className="hover:text-secondary hover:underline">Dự án</Link>
-              {project.category?.name && (
-                <>
-                  <span>/</span>
-                  <Link href={`/du-an?category=${project.category.slug}`} className="hover:text-secondary hover:underline">
-                    {project.category.name}
-                  </Link>
-                </>
-              )}
-            </div>
+      <div className="relative w-full min-h-[300px] sm:min-h-[360px] md:min-h-[420px] mb-10 overflow-hidden flex flex-col justify-between">
+        {project.coverImage && (
+          <Image src={project.coverImage} alt={project.name} fill className="object-cover -z-10" priority />
+        )}
+        <div className="absolute inset-0 bg-black/40 -z-10" />
+
+        <div className="w-full px-margin-mobile md:px-margin-desktop pt-24 md:pt-28">
+          <div className="max-w-container-max mx-auto w-full text-sm text-white/80 flex items-center gap-1 flex-wrap">
+            <Link href="/" className="hover:text-secondary hover:underline">Trang chủ</Link>
+            <span>/</span>
+            <Link href="/du-an" className="hover:text-secondary hover:underline">Dự án</Link>
+            {project.category?.name && (
+              <>
+                <span>/</span>
+                <Link href={`/du-an?category=${project.category.slug}`} className="hover:text-secondary hover:underline">
+                  {project.category.name}
+                </Link>
+              </>
+            )}
           </div>
-          <div className="max-w-container-max mx-auto w-full pb-10">
-            <h1 className="font-heading text-3xl md:text-5xl font-bold text-white">{project.name}</h1>
+        </div>
+
+        <div className="w-full px-margin-mobile md:px-margin-desktop pt-6 pb-8 md:pb-10">
+          <div className="max-w-container-max mx-auto w-full">
+            <h1 className="font-heading text-2xl sm:text-3xl md:text-5xl font-bold text-white leading-snug break-words">
+              {project.name}
+            </h1>
           </div>
         </div>
       </div>
