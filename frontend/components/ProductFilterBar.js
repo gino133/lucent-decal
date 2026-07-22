@@ -8,26 +8,27 @@ const SORT_LABELS = {
   price_desc: "Giá: Cao đến thấp",
 };
 
-// nút "Bộ lọc & Sắp xếp" mở ra bảng chọn xuất xứ + kiểu sắp xếp, giống mấy trang bán hàng.
-// lọc theo danh mục vẫn dùng dải cuộn ngang riêng ở trên (CategoryScrollBar), cái này chỉ
-// thêm phần sắp xếp giá + xuất xứ.
-export default function ProductFilterBar({ origins = [] }) {
+// nút "Bộ lọc & Sắp xếp" mở ra bảng chọn danh mục + xuất xứ + kiểu sắp xếp,
+// gộp chung tất cả bộ lọc vào một chỗ cho gọn gàng.
+export default function ProductFilterBar({ categories = [], basePath = "", origins = [] }) {
   return (
     <Suspense fallback={<div className="h-10 mb-6" />}>
-      <ProductFilterBarInner origins={origins} />
+      <ProductFilterBarInner categories={categories} basePath={basePath} origins={origins} />
     </Suspense>
   );
 }
 
-function ProductFilterBarInner({ origins = [] }) {
+function ProductFilterBarInner({ categories = [], basePath = "", origins = [] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
 
+  const currentCategory = searchParams.get("category") || "";
   const currentSort = searchParams.get("sort") || "newest";
   const currentOrigins = (searchParams.get("origin") || "").split(",").filter(Boolean);
-  const activeCount = (currentSort !== "newest" ? 1 : 0) + currentOrigins.length;
+  const activeCount =
+    (currentCategory ? 1 : 0) + (currentSort !== "newest" ? 1 : 0) + currentOrigins.length;
 
   function buildUrl(next) {
     const params = new URLSearchParams(searchParams.toString());
@@ -37,6 +38,10 @@ function ProductFilterBarInner({ origins = [] }) {
     });
     params.delete("page"); // đổi bộ lọc thì quay lại trang 1
     return `${pathname}?${params.toString()}`;
+  }
+
+  function setCategory(slug) {
+    router.push(buildUrl({ category: slug || null }));
   }
 
   function setSort(value) {
@@ -51,7 +56,7 @@ function ProductFilterBarInner({ origins = [] }) {
   }
 
   function clearAll() {
-    router.push(buildUrl({ sort: null, origin: null }));
+    router.push(buildUrl({ category: null, sort: null, origin: null }));
     setOpen(false);
   }
 
@@ -74,7 +79,25 @@ function ProductFilterBarInner({ origins = [] }) {
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-2 z-40 w-72 bg-white border border-on-background/10 rounded-xl shadow-lg p-5">
+          <div className="absolute left-0 top-full mt-2 z-40 w-72 max-w-[85vw] bg-white border border-on-background/10 rounded-xl shadow-lg p-5 max-h-[70vh] overflow-y-auto">
+            {categories.length > 0 && (
+              <div className="mb-5">
+                <p className="text-sm font-semibold mb-2">Danh mục</p>
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" checked={!currentCategory} onChange={() => setCategory("")} />
+                    Tất cả
+                  </label>
+                  {categories.map((c) => (
+                    <label key={c._id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input type="radio" checked={currentCategory === c.slug} onChange={() => setCategory(c.slug)} />
+                      {c.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mb-5">
               <p className="text-sm font-semibold mb-2">Sắp xếp theo</p>
               <div className="space-y-1.5">
