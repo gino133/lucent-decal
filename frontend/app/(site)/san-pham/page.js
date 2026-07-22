@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getProducts, getCategories, getSettings } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
-import CategoryScrollBar from "@/components/CategoryScrollBar";
 import ProductFilterBar from "@/components/ProductFilterBar";
 
 export default async function ProductsPage({ searchParams }) {
@@ -33,8 +32,7 @@ export default async function ProductsPage({ searchParams }) {
       <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">Sản phẩm</h1>
       <p className="text-on-background/60 mb-8">Danh sách sản phẩm của chúng tôi.</p>
 
-      <CategoryScrollBar categories={categories} basePath="/san-pham" activeSlug={category} />
-      <ProductFilterBar origins={settings?.productOrigins || []} />
+      <ProductFilterBar categories={categories} basePath="/san-pham" origins={settings?.productOrigins || []} />
 
       {products.length === 0 ? (
         <p className="text-on-background/50 text-center py-20">Chưa có sản phẩm nào phù hợp với bộ lọc.</p>
