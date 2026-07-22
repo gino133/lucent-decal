@@ -5,8 +5,8 @@ import Image from "next/image";
 const TRANSITION_MS = 200;
 
 // pop-up phóng to ảnh, có hiệu ứng mờ dần lúc mở/đóng/chuyển ảnh cho mượt.
-// Bấm bất kỳ đâu trên ảnh/nền đen đều tắt (trên điện thoại gần như không có "vùng trống"
-// quanh ảnh nên cho bấm cả vào ảnh luôn cho chắc) — chỉ 3 nút điều khiển mới không tắt popup.
+// Bấm vào chính tấm ảnh sẽ chuyển sang ảnh kế tiếp (không cần bấm đúng nút mũi tên);
+// bấm ra ngoài vùng ảnh (nền đen) mới đóng popup. Nếu chỉ có 1 ảnh thì bấm vào ảnh sẽ đóng luôn.
 // dùng: <Lightbox images={[{src,alt}]} startIndex={0} onClose={(lastIndex) => ...} />
 export default function Lightbox({ images, startIndex = 0, onClose }) {
   const [current, setCurrent] = useState(startIndex);
@@ -78,13 +78,20 @@ export default function Lightbox({ images, startIndex = 0, onClose }) {
       )}
 
       {/* khung ảnh: kích thước cố định theo inset, không phụ thuộc flex nên không bao giờ tràn màn hình */}
-      <div className="absolute inset-4 md:inset-16">
+      <div
+        className="absolute inset-4 md:inset-16"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (hasMultiple) next();
+          else requestClose();
+        }}
+      >
         <Image
           key={imgKey}
           src={images[current].src}
           alt={images[current].alt || ""}
           fill
-          className="object-contain transition-opacity duration-150 opacity-0 animate-[fadein_150ms_ease-out_forwards]"
+          className={`object-contain transition-opacity duration-150 opacity-0 animate-[fadein_150ms_ease-out_forwards] ${hasMultiple ? "cursor-pointer" : ""}`}
           sizes="100vw"
         />
       </div>
