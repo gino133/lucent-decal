@@ -77,9 +77,11 @@ export default function Lightbox({ images, startIndex = 0, onClose }) {
         </button>
       )}
 
-      {/* khung ảnh: kích thước cố định theo inset, không phụ thuộc flex nên không bao giờ tràn màn hình */}
+      {/* khung ảnh: kích thước cố định theo inset, không phụ thuộc flex nên không bao giờ tràn màn hình.
+          Đệm trên/dưới rộng hơn đệm trái/phải ở mobile & tablet để còn vùng nền đen đủ lớn cho ngón
+          tay bấm tắt popup (ảnh dọc thường chiếm gần hết chiều cao màn hình nhỏ). */}
       <div
-        className="absolute inset-4 md:inset-16"
+        className="absolute inset-x-3 inset-y-24 sm:inset-x-6 sm:inset-y-28 md:inset-x-10 md:inset-y-32 lg:inset-16"
         onClick={(e) => {
           e.stopPropagation();
           if (hasMultiple) next();
