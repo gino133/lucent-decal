@@ -49,6 +49,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   const quillRef = useRef(null);
   const savedRange = useRef(null);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [counts, setCounts] = useState({ words: 0, chars: 0 });
 
   // nút chèn ảnh trong thanh công cụ mở thư viện/ tải ảnh mới, thay vì Quill mặc định
   // (Quill mặc định nhúng thẳng base64 vào bài viết, nặng và không tái sử dụng được ảnh)
@@ -66,12 +67,27 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
     editor.setSelection(range.index + 1);
   }
 
+  function handleChange(html) {
+    onChange(html);
+  }
+
+  // đếm số từ/ký tự ngay khi mở lại nội dung đã có sẵn (sửa bài cũ), không đợi gõ thêm —
+  // tính trực tiếp từ chuỗi HTML thay vì chờ Quill (Quill tải bất đồng bộ, ref có thể
+  // chưa sẵn sàng ngay lúc mount)
+  useEffect(() => {
+    const text = (value || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").trim();
+    setCounts({
+      chars: text.length,
+      words: text ? text.split(/\s+/).filter(Boolean).length : 0,
+    });
+  }, [value]);
+
   const modules = useMemo(() => ({
     toolbar: {
       container: [
+        [{ header: 2 }, { header: 3 }],
         [{ font: [false, ...FONT_CHOICES] }, { size: [false, ...SIZE_CHOICES] }],
         ["bold", "italic", "underline", "strike"],
-        [{ header: 2 }, { header: 3 }],
         [{ color: [] }, { background: [] }],
         [{ align: [] }],
         [{ list: "ordered" }, { list: "bullet" }],
@@ -81,13 +97,27 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
       handlers: { image: openImagePicker },
     },
     clipboard: {
-      // Dán nội dung từ Word/Google Docs/ChatGPT... thường chèn khoảng trắng "không ngắt
-      // được" (&nbsp;) giữa mọi từ thay vì dấu cách thường, khiến cả câu dính liền thành
-      // 1 chuỗi không thể xuống dòng khi hiển thị ngoài trang. Matcher này thay nbsp bằng
-      // dấu cách thường ngay lúc dán, để tránh lặp lại lỗi cho bài viết mới.
+      // Dán nội dung từ Word/Google Docs/ChatGPT... thường mang theo 2 loại "rác":
+      // (1) khoảng trắng không ngắt được (&nbsp;) giữa mọi từ — khiến cả câu dính
+      //     liền thành 1 chuỗi không thể xuống dòng khi hiển thị ngoài trang;
+      // (2) màu nền trắng của trang giấy gốc, và tiêu đề Heading 1 của Word.
+      // Dọn ngay lúc dán để nội dung mới luôn sạch, khớp với cách trang công khai
+      // hiển thị (xem thêm hàm sanitizeRichHtml ở frontend/lib/richtext.js — hàm đó
+      // vẫn được giữ lại để dọn luôn các bài viết CŨ đã lỡ lưu rác từ trước).
       matchers: [
-        [3 /* Node.TEXT_NODE — dùng số trực tiếp để tránh lỗi khi render phía server */, (node, delta) => {
+        [3 /* Node.TEXT_NODE */, (node, delta) => {
           if (node.data) node.data = node.data.replace(/\u00A0/g, " ");
+          return delta;
+        }],
+        [1 /* Node.ELEMENT_NODE */, (node, delta) => {
+          if (node.style?.backgroundColor) node.style.backgroundColor = "";
+          if (node.tagName === "H1") {
+            delta.ops = delta.ops.map((op) =>
+              op.attributes?.header === 1
+                ? { ...op, attributes: { ...op.attributes, header: 2 } }
+                : op
+            );
+          }
           return delta;
         }],
       ],
@@ -104,18 +134,55 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
     document.head.appendChild(link);
   }, []);
 
+  // gắn chú thích (tooltip) cho các nút quan trọng trong thanh công cụ, Quill không tự làm việc này
+  useEffect(() => {
+    const root = quillRef.current?.getEditor?.()?.container?.closest(".rte-wrapper");
+    if (!root) return;
+    const tips = {
+      '.ql-header[value="2"]': "Tiêu đề mục lớn (H2) — dùng cho từng phần chính của bài",
+      '.ql-header[value="3"]': "Tiêu đề mục nhỏ (H3) — dùng cho câu hỏi FAQ, mục con bên trong 1 phần",
+      ".ql-bold": "In đậm (Ctrl+B)",
+      ".ql-italic": "In nghiêng (Ctrl+I)",
+      ".ql-blockquote": "Trích dẫn",
+      ".ql-link": "Chèn liên kết",
+      ".ql-image": "Chèn ảnh từ thư viện",
+      ".ql-clean": "Xoá hết định dạng đoạn đang chọn",
+    };
+    Object.entries(tips).forEach(([selector, title]) => {
+      root.querySelectorAll(selector).forEach((el) => el.setAttribute("title", title));
+    });
+  }, []);
+
   return (
     <div className="rte-wrapper">
       <style dangerouslySetInnerHTML={{ __html: pickerLabelCSS() }} />
+
+      {/* gợi ý cấu trúc tiêu đề để nội dung có phân cấp rõ ràng, tốt cho người đọc lẫn SEO,
+          thay vì gõ chữ đậm tay cho mọi đề mục (không phải tiêu đề thật, Google không hiểu) */}
+      <div className="mb-2 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+        <span className="mt-0.5">💡</span>
+        <span>
+          Dùng nút <strong>H2</strong> cho từng phần chính (VD: "Câu hỏi thường gặp"), <strong>H3</strong> cho mục con bên trong (VD: từng câu hỏi) —
+          đừng chỉ bôi đậm chữ, tiêu đề thật giúp bài viết rõ ràng hơn và lên Google tốt hơn.
+        </span>
+      </div>
+
       <ReactQuill
         ref={quillRef}
         theme="snow"
         value={value || ""}
-        onChange={onChange}
+        onChange={handleChange}
         modules={modules}
-        placeholder={placeholder}
+        placeholder={placeholder || "Nhập nội dung..."}
       />
-      <style dangerouslySetInnerHTML={{ __html: `.rte-wrapper .ql-editor { min-height: ${minHeight}px; } .rte-wrapper .ql-editor img { max-width: 100%; }` }} />
+      <style dangerouslySetInnerHTML={{
+        __html: `.rte-wrapper .ql-editor { min-height: ${minHeight}px; resize: vertical; overflow-y: auto; } .rte-wrapper .ql-editor img { max-width: 100%; }`,
+      }} />
+
+      <div className="mt-1.5 flex justify-end gap-3 text-[11px] text-on-background/40">
+        <span>{counts.words.toLocaleString("vi-VN")} từ</span>
+        <span>{counts.chars.toLocaleString("vi-VN")} ký tự</span>
+      </div>
 
       {imagePickerOpen && (
         <MediaLibraryModal onClose={() => setImagePickerOpen(false)} onSelect={insertImage} />
