@@ -58,8 +58,10 @@ body {
    tự xuống dòng ở dấu cách theo cách bình thường (tránh bị ngắt giữa từ khi từ đó vẫn còn
    đủ ngắn để xuống dòng mới). Chỉ ảnh (img) và bảng (table) mới cần chặn tràn khung, và chỉ
    link (a) mới cần ngắt được vì URL dài không có dấu cách. */
-.rich-content {
-  max-width: 100%;
+.rich-content, .rich-content * {
+  white-space: normal !important;
+  width: auto !important;
+  max-width: 100% !important;
 }
 .rich-content h1,
 .rich-content h2,
