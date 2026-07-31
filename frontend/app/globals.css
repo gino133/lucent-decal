@@ -15,6 +15,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden; /* nhiều trình duyệt di động chỉ chặn tràn ngang khi đặt ở html, không chỉ ở body */
+  max-width: 100%;
 }
 
 body {
@@ -22,6 +24,7 @@ body {
   color: var(--color-on-background);
   font-family: var(--font-body);
   overflow-x: hidden; /* chặn tràn ngang toàn trang nếu có phần tử con quá khổ */
+  max-width: 100%;
 }
 
 .glass-card {
