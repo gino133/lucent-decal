@@ -57,11 +57,20 @@ body {
    Không dùng overflow-wrap/word-break trên tiêu đề, đoạn văn, danh sách — để trình duyệt
    tự xuống dòng ở dấu cách theo cách bình thường (tránh bị ngắt giữa từ khi từ đó vẫn còn
    đủ ngắn để xuống dòng mới). Chỉ ảnh (img) và bảng (table) mới cần chặn tràn khung, và chỉ
-   link (a) mới cần ngắt được vì URL dài không có dấu cách. */
-.rich-content, .rich-content * {
+   link (a) mới cần ngắt được vì URL dài không có dấu cách.
+
+   !important ở đây là CỐ Ý: nội dung bài viết đôi khi được dán từ Word/Google Docs vào
+   trình soạn thảo, mang theo style nội tuyến kiểu white-space:nowrap hoặc width cố định
+   theo pixel ngay trên từng thẻ — các style này nằm trong HTML đã lưu nên không cách nào
+   sửa qua class, phải ép ghi đè bằng !important thì chữ mới chịu xuống dòng bình thường. */
+.rich-content,
+.rich-content * {
   white-space: normal !important;
   width: auto !important;
   max-width: 100% !important;
+}
+.rich-content {
+  max-width: 100%;
 }
 .rich-content h1,
 .rich-content h2,
