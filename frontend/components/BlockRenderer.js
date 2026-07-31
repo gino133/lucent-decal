@@ -6,6 +6,7 @@ import ProjectCard from "./ProjectCard";
 import PostCard from "./PostCard";
 import ContactForm from "./ContactForm";
 import ClickableImage from "./ClickableImage";
+import { sanitizeRichHtml } from "@/lib/richtext";
 
 // mỗi block quản lý ở /admin/trang sẽ render tương ứng ở đây
 export default async function BlockRenderer({ blocks = [] }) {
@@ -63,7 +64,7 @@ async function Block({ block }) {
   if (type === "richtext") {
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-12">
-        <div className="rich-content max-w-3xl mx-auto" dangerouslySetInnerHTML={{ __html: data.html || "" }} />
+        <div className="rich-content max-w-3xl mx-auto" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(data.html) }} />
       </section>
     );
   }
@@ -80,7 +81,7 @@ async function Block({ block }) {
           )}
           <div>
             {data.title && <h2 className="font-heading text-2xl md:text-3xl font-bold mb-4">{data.title}</h2>}
-            <div className="rich-content" dangerouslySetInnerHTML={{ __html: data.html || "" }} />
+            <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(data.html) }} />
           </div>
         </div>
       </section>

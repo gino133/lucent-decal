@@ -3,6 +3,7 @@ import { getPost, getPosts } from "@/lib/api";
 import PostCard from "@/components/PostCard";
 import CommentSection from "@/components/CommentSection";
 import ClickableImage from "@/components/ClickableImage";
+import { sanitizeRichHtml } from "@/lib/richtext";
 import { notFound } from "next/navigation";
 
 export default async function PostDetailPage({ params }) {
@@ -55,7 +56,7 @@ export default async function PostDetailPage({ params }) {
         )}
 
         {post.content && (
-          <div className="rich-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+          <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(post.content) }} />
         )}
 
         {post.tags?.length > 0 && (

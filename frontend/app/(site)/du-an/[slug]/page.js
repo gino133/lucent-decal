@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getProject } from "@/lib/api";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import ClickableImage from "@/components/ClickableImage";
+import { sanitizeRichHtml } from "@/lib/richtext";
 import { notFound } from "next/navigation";
 
 export default async function ProjectDetailPage({ params }) {
@@ -50,7 +51,7 @@ export default async function ProjectDetailPage({ params }) {
         </div>
 
         {project.description && (
-          <div className="rich-content max-w-3xl mb-12" dangerouslySetInnerHTML={{ __html: project.description }} />
+          <div className="rich-content max-w-3xl mb-12" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.description) }} />
         )}
 
         {project.materials?.length > 0 && (

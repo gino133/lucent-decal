@@ -80,6 +80,18 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
       ],
       handlers: { image: openImagePicker },
     },
+    clipboard: {
+      // Dán nội dung từ Word/Google Docs/ChatGPT... thường chèn khoảng trắng "không ngắt
+      // được" (&nbsp;) giữa mọi từ thay vì dấu cách thường, khiến cả câu dính liền thành
+      // 1 chuỗi không thể xuống dòng khi hiển thị ngoài trang. Matcher này thay nbsp bằng
+      // dấu cách thường ngay lúc dán, để tránh lặp lại lỗi cho bài viết mới.
+      matchers: [
+        [3 /* Node.TEXT_NODE — dùng số trực tiếp để tránh lỗi khi render phía server */, (node, delta) => {
+          if (node.data) node.data = node.data.replace(/\u00A0/g, " ");
+          return delta;
+        }],
+      ],
+    },
   }), []);
 
   // nạp Google Fonts 1 lần để xem trước đúng font lúc soạn

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProduct, getProducts } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailInteractive from "@/components/ProductDetailInteractive";
+import { sanitizeRichHtml } from "@/lib/richtext";
 import { notFound } from "next/navigation";
 
 export default async function ProductDetailPage({ params }) {
@@ -31,7 +32,7 @@ export default async function ProductDetailPage({ params }) {
       <ProductDetailInteractive product={product} />
 
       {product.description && (
-        <div className="rich-content max-w-3xl mt-16" dangerouslySetInnerHTML={{ __html: product.description }} />
+        <div className="rich-content max-w-3xl mt-16" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(product.description) }} />
       )}
 
       {related?.items?.length > 1 && (

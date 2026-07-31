@@ -7,6 +7,7 @@ import ProductCard from "./ProductCard";
 import ProjectCard from "./ProjectCard";
 import PostCard from "./PostCard";
 import ContactForm from "./ContactForm";
+import { sanitizeRichHtml } from "@/lib/richtext";
 
 // bản twin của BlockRenderer.js nhưng chạy phía client, dùng cho khung xem trước
 // ở /admin/trang (BlockRenderer là Server Component nên không tái dùng trực tiếp được)
@@ -62,7 +63,7 @@ function PreviewBlock({ block }) {
   if (type === "richtext") {
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-8">
-        <div className="rich-content max-w-3xl mx-auto" dangerouslySetInnerHTML={{ __html: data.html || "" }} />
+        <div className="rich-content max-w-3xl mx-auto" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(data.html) }} />
       </section>
     );
   }
@@ -79,7 +80,7 @@ function PreviewBlock({ block }) {
           )}
           <div>
             {data.title && <h2 className="font-heading text-xl md:text-2xl font-bold mb-3">{data.title}</h2>}
-            <div className="rich-content" dangerouslySetInnerHTML={{ __html: data.html || "" }} />
+            <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(data.html) }} />
           </div>
         </div>
       </section>
