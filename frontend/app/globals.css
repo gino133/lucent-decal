@@ -53,8 +53,7 @@ body {
 /* Rich text block content (từ admin) */
 .rich-content {
   max-width: 100%;
-  overflow-wrap: break-word; /* chữ tự xuống dòng, không tràn ra ngoài khung */
-  word-break: break-word;
+  overflow-wrap: break-word; /* chữ tự xuống dòng ở dấu cách; chỉ ngắt giữa từ khi từ đó dài hơn cả dòng */
 }
 .rich-content * {
   max-width: 100%;
