@@ -1,14 +1,29 @@
 import Link from "next/link";
-import { getPost, getPosts } from "@/lib/api";
+import { getPost, getPosts, getSettings } from "@/lib/api";
 import PostCard from "@/components/PostCard";
 import CommentSection from "@/components/CommentSection";
 import ClickableImage from "@/components/ClickableImage";
-import { sanitizeRichHtml } from "@/lib/richtext";
+import FaqSchema from "@/components/FaqSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
+import ArticleSchema from "@/components/ArticleSchema";
+import { sanitizeRichHtml, extractFaqPairs } from "@/lib/richtext";
 import { notFound } from "next/navigation";
 
 export default async function PostDetailPage({ params }) {
-  const post = await getPost(params.slug);
+  const [post, settings] = await Promise.all([getPost(params.slug), getSettings()]);
   if (!post) return notFound();
+
+  const siteUrl = (settings?.seo?.siteUrl || "").replace(/\/$/, "");
+  const cleanContent = sanitizeRichHtml(post.content);
+  const faqs = extractFaqPairs(cleanContent);
+  const breadcrumbItems = [
+    { name: "Trang chủ", url: siteUrl ? `${siteUrl}/` : undefined },
+    { name: "Tin tức", url: siteUrl ? `${siteUrl}/tin-tuc` : undefined },
+    ...(post.category?.name
+      ? [{ name: post.category.name, url: siteUrl ? `${siteUrl}/tin-tuc?category=${post.category.slug}` : undefined }]
+      : []),
+    { name: post.title },
+  ];
 
   const date = post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("vi-VN") : "";
 
@@ -20,6 +35,10 @@ export default async function PostDetailPage({ params }) {
 
   return (
     <div className="pt-32 pb-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+      <ArticleSchema post={post} settings={settings} />
+      <BreadcrumbSchema items={breadcrumbItems} />
+      <FaqSchema faqs={faqs} />
+
       <div className="text-sm text-on-background/50 mb-6 flex items-center gap-1 flex-wrap">
         <Link href="/" className="hover:text-secondary hover:underline">Trang chủ</Link>
         <span>/</span>
@@ -56,7 +75,7 @@ export default async function PostDetailPage({ params }) {
         )}
 
         {post.content && (
-          <div className="rich-content" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(post.content) }} />
+          <div className="rich-content" dangerouslySetInnerHTML={{ __html: cleanContent }} />
         )}
 
         {post.tags?.length > 0 && (

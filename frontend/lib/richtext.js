@@ -30,3 +30,52 @@ export function sanitizeRichHtml(html) {
 
   return out;
 }
+
+// Bỏ hết thẻ HTML, giải mã vài HTML entity thường gặp, gom khoảng trắng thừa —
+// dùng để lấy chữ thuần cho schema (Google không nhận HTML trong đó).
+export function stripHtmlTags(html) {
+  if (!html || typeof html !== "string") return "";
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Quét nội dung rich-text để tìm các cặp hỏi–đáp dạng FAQ, dùng tạo FAQPage schema
+// cho Google (Google hay xổ trực tiếp từng câu hỏi ngay dưới link tìm kiếm, nếu
+// đánh dấu đúng chuẩn). Cách nhận diện: mọi tiêu đề (h2/h3/h4) mà chữ kết thúc
+// bằng dấu "?" được coi là 1 câu hỏi; nội dung (đoạn văn/danh sách) ngay sau đó,
+// cho tới tiêu đề kế tiếp, được gộp lại làm câu trả lời. Đây là suy luận dựa trên
+// cách trình soạn thảo xuất ra HTML (chỉ có các thẻ khối phẳng, không lồng nhau),
+// không phải phân tích HTML đầy đủ, nhưng đủ dùng cho nội dung thực tế của site.
+export function extractFaqPairs(html, { max = 30 } = {}) {
+  if (!html || typeof html !== "string") return [];
+
+  const blockRegex = /<(h1|h2|h3|h4|p|ul|ol|blockquote)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/gi;
+  const blocks = [];
+  let m;
+  while ((m = blockRegex.exec(html))) {
+    blocks.push({ tag: m[1].toLowerCase(), text: stripHtmlTags(m[2]) });
+  }
+
+  const faqs = [];
+  let current = null;
+  for (const block of blocks) {
+    const isHeading = block.tag === "h1" || block.tag === "h2" || block.tag === "h3" || block.tag === "h4";
+    if (isHeading) {
+      if (current && current.answer.trim()) faqs.push(current);
+      current = block.text.endsWith("?") ? { question: block.text, answer: "" } : null;
+    } else if (current) {
+      current.answer = current.answer ? `${current.answer} ${block.text}` : block.text;
+    }
+  }
+  if (current && current.answer.trim()) faqs.push(current);
+
+  return faqs.filter((f) => f.question && f.answer).slice(0, max);
+}

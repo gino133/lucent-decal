@@ -1,18 +1,37 @@
 import Link from "next/link";
-import { getProduct, getProducts } from "@/lib/api";
+import { getProduct, getProducts, getSettings } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import ProductDetailInteractive from "@/components/ProductDetailInteractive";
-import { sanitizeRichHtml } from "@/lib/richtext";
+import ProductSchema from "@/components/ProductSchema";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
+import FaqSchema from "@/components/FaqSchema";
+import { sanitizeRichHtml, extractFaqPairs } from "@/lib/richtext";
 import { notFound } from "next/navigation";
 
 export default async function ProductDetailPage({ params }) {
-  const product = await getProduct(params.slug);
+  const [product, settings] = await Promise.all([getProduct(params.slug), getSettings()]);
   if (!product) return notFound();
+
+  const siteUrl = (settings?.seo?.siteUrl || "").replace(/\/$/, "");
+  const cleanDescription = sanitizeRichHtml(product.description);
+  const faqs = extractFaqPairs(cleanDescription);
+  const breadcrumbItems = [
+    { name: "Trang chủ", url: siteUrl ? `${siteUrl}/` : undefined },
+    { name: "Sản phẩm", url: siteUrl ? `${siteUrl}/san-pham` : undefined },
+    ...(product.category?.name
+      ? [{ name: product.category.name, url: siteUrl ? `${siteUrl}/san-pham?category=${product.category.slug}` : undefined }]
+      : []),
+    { name: product.name },
+  ];
 
   const related = await getProducts(`?category=${product.category?._id || ""}&limit=4`);
 
   return (
     <div className="pt-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto pb-20">
+      <ProductSchema product={product} siteUrl={siteUrl} />
+      <BreadcrumbSchema items={breadcrumbItems} />
+      <FaqSchema faqs={faqs} />
+
       <div className="text-sm text-on-background/50 mb-8 flex items-center gap-1 flex-wrap">
         <Link href="/" className="hover:text-secondary hover:underline">Trang chủ</Link>
         <span>/</span>
@@ -32,7 +51,7 @@ export default async function ProductDetailPage({ params }) {
       <ProductDetailInteractive product={product} />
 
       {product.description && (
-        <div className="rich-content max-w-3xl mt-16" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(product.description) }} />
+        <div className="rich-content max-w-3xl mt-16" dangerouslySetInnerHTML={{ __html: cleanDescription }} />
       )}
 
       {related?.items?.length > 1 && (

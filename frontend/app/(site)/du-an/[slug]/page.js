@@ -1,17 +1,34 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getProject } from "@/lib/api";
+import { getProject, getSettings } from "@/lib/api";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import ClickableImage from "@/components/ClickableImage";
-import { sanitizeRichHtml } from "@/lib/richtext";
+import BreadcrumbSchema from "@/components/BreadcrumbSchema";
+import FaqSchema from "@/components/FaqSchema";
+import { sanitizeRichHtml, extractFaqPairs } from "@/lib/richtext";
 import { notFound } from "next/navigation";
 
 export default async function ProjectDetailPage({ params }) {
-  const project = await getProject(params.slug);
+  const [project, settings] = await Promise.all([getProject(params.slug), getSettings()]);
   if (!project) return notFound();
+
+  const siteUrl = (settings?.seo?.siteUrl || "").replace(/\/$/, "");
+  const cleanDescription = sanitizeRichHtml(project.description);
+  const faqs = extractFaqPairs(cleanDescription);
+  const breadcrumbItems = [
+    { name: "Trang chủ", url: siteUrl ? `${siteUrl}/` : undefined },
+    { name: "Dự án", url: siteUrl ? `${siteUrl}/du-an` : undefined },
+    ...(project.category?.name
+      ? [{ name: project.category.name, url: siteUrl ? `${siteUrl}/du-an?category=${project.category.slug}` : undefined }]
+      : []),
+    { name: project.name },
+  ];
 
   return (
     <div className="pt-32 pb-20">
+      <BreadcrumbSchema items={breadcrumbItems} />
+      <FaqSchema faqs={faqs} />
+
       <div className="relative w-full min-h-[300px] sm:min-h-[360px] md:min-h-[420px] mb-10 overflow-hidden flex flex-col justify-between">
         {project.coverImage && (
           <Image src={project.coverImage} alt={project.name} fill className="object-cover -z-10" priority />
@@ -51,7 +68,7 @@ export default async function ProjectDetailPage({ params }) {
         </div>
 
         {project.description && (
-          <div className="rich-content max-w-3xl mb-12" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.description) }} />
+          <div className="rich-content max-w-3xl mb-12" dangerouslySetInnerHTML={{ __html: cleanDescription }} />
         )}
 
         {project.materials?.length > 0 && (
