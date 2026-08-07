@@ -1,6 +1,7 @@
 import "./globals.css";
 import { getSettings } from "@/lib/api";
 import LocalBusinessSchema from "@/components/LocalBusinessSchema";
+import NextTopLoader from "nextjs-toploader";
 
 export async function generateMetadata() {
   const settings = await getSettings();
@@ -80,7 +81,17 @@ export default async function RootLayout({ children }) {
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
         <LocalBusinessSchema settings={settings} />
       </head>
-      <body className="font-body">{children}</body>
+      <body className="font-body">
+        {/* thanh loading màu chạy ngang đầu trang mỗi khi chuyển trang, để khách hàng
+            thấy ngay trang đang phản hồi thay vì tưởng bị đứng máy khi bấm link */}
+        <NextTopLoader
+          color={settings?.colors?.secondary || "#fae519"}
+          height={3}
+          showSpinner={false}
+          shadow="0 0 10px rgba(0,0,0,0.15)"
+        />
+        {children}
+      </body>
     </html>
   );
 }
