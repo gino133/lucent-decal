@@ -4,9 +4,12 @@ import Image from "next/image";
 import { apiWithRetry, friendlyErrorMessage } from "@/lib/api";
 import { compressImage } from "@/lib/imageCompress";
 
-// ô ảnh nhỏ gọn cho từng dòng biến thể trong bảng — bấm vào để chọn/đổi ảnh, có ảnh thì hiện thumbnail
-export default function VariantImageCell({ value, onChange }) {
+// ô ảnh nhỏ gọn cho từng dòng biến thể trong bảng — bấm vào mở bảng chọn nhanh từ
+// các ảnh đã thêm ở mục "Hình ảnh" phía trên (không cần tải lại ảnh trùng cho từng
+// biến thể), vẫn giữ lựa chọn tải ảnh riêng khác nếu biến thể đó cần ảnh chưa có sẵn.
+export default function VariantImageCell({ value, onChange, productImages = [] }) {
   const [uploading, setUploading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
@@ -20,6 +23,7 @@ export default function VariantImageCell({ value, onChange }) {
         headers: { "Content-Type": "multipart/form-data" },
       });
       onChange(data.url);
+      setOpen(false);
     } catch (err) {
       alert("Tải ảnh lên thất bại: " + friendlyErrorMessage(err));
     } finally {
@@ -29,24 +33,66 @@ export default function VariantImageCell({ value, onChange }) {
   }
 
   return (
-    <label className="relative block w-10 h-10 rounded border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer overflow-hidden shrink-0" title="Ảnh riêng cho biến thể này (không bắt buộc)">
-      {value ? (
-        <Image src={value} alt="" fill className="object-cover" />
-      ) : (
-        <span className="flex items-center justify-center w-full h-full text-gray-400">
-          <span className="material-symbols-outlined text-base">{uploading ? "hourglass_empty" : "add_a_photo"}</span>
-        </span>
-      )}
+    <div className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="relative block w-10 h-10 rounded border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 overflow-hidden shrink-0"
+        title="Chọn ảnh cho biến thể này (không bắt buộc) — khách bấm vào tuỳ chọn này thì ảnh sản phẩm sẽ đổi theo"
+      >
+        {value ? (
+          <Image src={value} alt="" fill className="object-cover" />
+        ) : (
+          <span className="flex items-center justify-center w-full h-full text-gray-400">
+            <span className="material-symbols-outlined text-base">{uploading ? "hourglass_empty" : "add_a_photo"}</span>
+          </span>
+        )}
+      </button>
+
       {value && (
         <button
           type="button"
-          onClick={(e) => { e.preventDefault(); onChange(""); }}
-          className="absolute -top-1 -right-1 bg-black/70 text-white w-4 h-4 rounded-full text-[10px] leading-4"
+          onClick={() => onChange("")}
+          className="absolute -top-1 -right-1 bg-black/70 text-white w-4 h-4 rounded-full text-[10px] leading-4 z-10"
+          title="Bỏ ảnh riêng của biến thể này"
         >
           ×
         </button>
       )}
-      <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
-    </label>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full mt-1 z-40 w-56 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+            {productImages.length > 0 ? (
+              <>
+                <p className="text-xs font-semibold text-gray-500 mb-2">Chọn từ ảnh sản phẩm ở trên</p>
+                <div className="grid grid-cols-4 gap-1.5 mb-3 max-h-40 overflow-y-auto">
+                  {productImages.map((img) => (
+                    <button
+                      key={img}
+                      type="button"
+                      onClick={() => { onChange(img); setOpen(false); }}
+                      className={`relative w-10 h-10 rounded overflow-hidden border-2 shrink-0 ${
+                        value === img ? "border-secondary" : "border-transparent hover:border-gray-300"
+                      }`}
+                    >
+                      <Image src={img} alt="" fill className="object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-gray-400 mb-3">Chưa có ảnh nào trong mục "Hình ảnh" ở trên — thêm ảnh ở đó trước rồi quay lại đây chọn.</p>
+            )}
+            <label className="flex items-center justify-center gap-1.5 text-xs text-primary border border-dashed border-gray-300 rounded py-1.5 cursor-pointer hover:bg-gray-50">
+              <span className="material-symbols-outlined text-sm">{uploading ? "hourglass_empty" : "upload"}</span>
+              Tải ảnh riêng khác
+              <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+            </label>
+          </div>
+        </>
+      )}
+    </div>
   );
 }

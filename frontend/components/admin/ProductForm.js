@@ -250,7 +250,7 @@ export default function ProductForm({ initial, productId }) {
                     <tr key={idx} className="border-t">
                       <td className="p-3">{v.optionValues.join(" / ")}</td>
                       <td className="p-3">
-                        <VariantImageCell value={v.image} onChange={(url) => updateVariant(idx, "image", url)} />
+                        <VariantImageCell value={v.image} onChange={(url) => updateVariant(idx, "image", url)} productImages={form.images} />
                       </td>
                       <td className="p-3">
                         <input
