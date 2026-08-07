@@ -10,6 +10,7 @@ import { compressImage } from "@/lib/imageCompress";
 export default function VariantImageCell({ value, onChange, productImages = [] }) {
   const [uploading, setUploading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [hoverImg, setHoverImg] = useState(null);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
@@ -73,6 +74,10 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
                       key={img}
                       type="button"
                       onClick={() => { onChange(img); setOpen(false); }}
+                      onMouseEnter={() => setHoverImg(img)}
+                      onMouseLeave={() => setHoverImg((cur) => (cur === img ? null : cur))}
+                      onFocus={() => setHoverImg(img)}
+                      onBlur={() => setHoverImg((cur) => (cur === img ? null : cur))}
                       className={`relative w-10 h-10 rounded overflow-hidden border-2 shrink-0 ${
                         value === img ? "border-secondary" : "border-transparent hover:border-gray-300"
                       }`}
@@ -81,6 +86,14 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
                     </button>
                   ))}
                 </div>
+
+                {/* xem trước ảnh cỡ lớn khi rê chuột vào 1 ô nhỏ, để chọn đúng vân/màu
+                    thay vì phải đoán qua ảnh thu nhỏ 40x40px */}
+                {hoverImg && (
+                  <div className="absolute left-full top-0 ml-2 w-44 h-44 rounded-lg overflow-hidden border border-gray-200 shadow-xl bg-white z-50 pointer-events-none">
+                    <Image src={hoverImg} alt="Xem trước" fill className="object-cover" sizes="176px" />
+                  </div>
+                )}
               </>
             ) : (
               <p className="text-xs text-gray-400 mb-3">Chưa có ảnh nào trong mục "Hình ảnh" ở trên — thêm ảnh ở đó trước rồi quay lại đây chọn.</p>
