@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { apiWithRetry, friendlyErrorMessage } from "@/lib/api";
 import { compressImage } from "@/lib/imageCompress";
+
+const PREVIEW_SIZE = 200;
 
 // ô ảnh nhỏ gọn cho từng dòng biến thể trong bảng — bấm vào mở bảng chọn nhanh từ
 // các ảnh đã thêm ở mục "Hình ảnh" phía trên (không cần tải lại ảnh trùng cho từng
@@ -11,6 +14,25 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
   const [uploading, setUploading] = useState(false);
   const [open, setOpen] = useState(false);
   const [hoverImg, setHoverImg] = useState(null);
+  const [hoverPos, setHoverPos] = useState(null);
+
+  // tính vị trí ảnh xem trước dựa theo toạ độ thật của ô nhỏ trên màn hình, rồi tự
+  // né mép phải/dưới nếu không đủ chỗ — tránh bị tràn ra ngoài viewport
+  function showPreview(img, el) {
+    const rect = el.getBoundingClientRect();
+    const gap = 8;
+    let left = rect.right + gap;
+    if (left + PREVIEW_SIZE > window.innerWidth) left = rect.left - PREVIEW_SIZE - gap;
+    let top = rect.top;
+    if (top + PREVIEW_SIZE > window.innerHeight) top = window.innerHeight - PREVIEW_SIZE - gap;
+    if (top < gap) top = gap;
+    setHoverPos({ top, left });
+    setHoverImg(img);
+  }
+  function hidePreview() {
+    setHoverImg(null);
+    setHoverPos(null);
+  }
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
@@ -63,7 +85,7 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
 
       {open && (
         <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-30" onClick={() => { setOpen(false); hidePreview(); }} />
           <div className="absolute left-0 top-full mt-1 z-40 w-56 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
             {productImages.length > 0 ? (
               <>
@@ -73,11 +95,11 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
                     <button
                       key={img}
                       type="button"
-                      onClick={() => { onChange(img); setOpen(false); }}
-                      onMouseEnter={() => setHoverImg(img)}
-                      onMouseLeave={() => setHoverImg((cur) => (cur === img ? null : cur))}
-                      onFocus={() => setHoverImg(img)}
-                      onBlur={() => setHoverImg((cur) => (cur === img ? null : cur))}
+                      onClick={() => { onChange(img); setOpen(false); hidePreview(); }}
+                      onMouseEnter={(e) => showPreview(img, e.currentTarget)}
+                      onMouseLeave={hidePreview}
+                      onFocus={(e) => showPreview(img, e.currentTarget)}
+                      onBlur={hidePreview}
                       className={`relative w-10 h-10 rounded overflow-hidden border-2 shrink-0 ${
                         value === img ? "border-secondary" : "border-transparent hover:border-gray-300"
                       }`}
@@ -86,14 +108,6 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
                     </button>
                   ))}
                 </div>
-
-                {/* xem trước ảnh cỡ lớn khi rê chuột vào 1 ô nhỏ, để chọn đúng vân/màu
-                    thay vì phải đoán qua ảnh thu nhỏ 40x40px */}
-                {hoverImg && (
-                  <div className="absolute left-full top-0 ml-2 w-44 h-44 rounded-lg overflow-hidden border border-gray-200 shadow-xl bg-white z-50 pointer-events-none">
-                    <Image src={hoverImg} alt="Xem trước" fill className="object-cover" sizes="176px" />
-                  </div>
-                )}
               </>
             ) : (
               <p className="text-xs text-gray-400 mb-3">Chưa có ảnh nào trong mục "Hình ảnh" ở trên — thêm ảnh ở đó trước rồi quay lại đây chọn.</p>
@@ -105,6 +119,19 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
             </label>
           </div>
         </>
+      )}
+
+      {/* ảnh xem trước cỡ lớn render thẳng ra ngoài body qua Portal, để không bị bảng/khung
+          cha có overflow-hidden cắt mất — định vị bằng toạ độ thật (fixed), không phụ thuộc
+          vào vị trí trong DOM nên luôn hiện đầy đủ dù ô nằm ở đâu trong bảng */}
+      {hoverImg && hoverPos && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed rounded-lg overflow-hidden border border-gray-200 shadow-xl bg-white z-[999] pointer-events-none"
+          style={{ top: hoverPos.top, left: hoverPos.left, width: PREVIEW_SIZE, height: PREVIEW_SIZE }}
+        >
+          <Image src={hoverImg} alt="Xem trước" fill className="object-cover" sizes={`${PREVIEW_SIZE}px`} />
+        </div>,
+        document.body
       )}
     </div>
   );
