@@ -103,14 +103,44 @@ router.get("/track/:orderCode", asyncHandler(async (req, res) => {
 }));
 
 // ---- Admin ----
+// GET /api/orders?status=&paymentStatus=&search=&minTotal=&maxTotal=&sort=&includeHidden=
 router.get("/", protect, asyncHandler(async (req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 });
+  const { status, paymentStatus, search, minTotal, maxTotal, sort, includeHidden } = req.query;
+  const filter = {};
+
+  if (!includeHidden || includeHidden === "false") filter.isHidden = { $ne: true };
+  if (status) filter.orderStatus = status;
+  if (paymentStatus) filter.paymentStatus = paymentStatus;
+  if (search) {
+    const re = { $regex: search.trim(), $options: "i" };
+    filter.$or = [{ orderCode: re }, { "customer.fullName": re }, { "customer.phone": re }];
+  }
+  if (minTotal || maxTotal) {
+    filter.total = {};
+    if (minTotal) filter.total.$gte = Number(minTotal);
+    if (maxTotal) filter.total.$lte = Number(maxTotal);
+  }
+
+  const sortMap = {
+    newest: { createdAt: -1 },
+    oldest: { createdAt: 1 },
+    total_desc: { total: -1 },
+    total_asc: { total: 1 },
+  };
+  const orders = await Order.find(filter).sort(sortMap[sort] || sortMap.newest);
   res.json(orders);
 }));
 
 router.put("/:id", protect, asyncHandler(async (req, res) => {
   const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json(order);
+}));
+
+// DELETE /api/orders/:id — xoá vĩnh viễn, không thể hoàn tác (khác với isHidden chỉ ẩn tạm)
+router.delete("/:id", protect, asyncHandler(async (req, res) => {
+  const order = await Order.findByIdAndDelete(req.params.id);
+  if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+  res.json({ message: "Đã xoá vĩnh viễn" });
 }));
 
 module.exports = router;
