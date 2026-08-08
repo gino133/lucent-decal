@@ -40,6 +40,7 @@ const orderSchema = new mongoose.Schema(
     },
     vnpayTxnRef: String,
     vnpayTransactionNo: String,
+    isHidden: { type: Boolean, default: false }, // ẩn khỏi danh sách chính (không xoá hẳn), admin có thể bật lại xem
   },
   { timestamps: true }
 );
