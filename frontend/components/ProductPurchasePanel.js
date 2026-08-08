@@ -1,44 +1,26 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 
 // hiện giá + bộ chọn tuỳ chọn (nếu có) rồi thêm vào giỏ, sản phẩm không có
-// biến thể thì y như ô mua hàng đơn giản bình thường
-export default function ProductPurchasePanel({ product, onVariantChange }) {
+// biến thể thì y như ô mua hàng đơn giản bình thường.
+// selected/matchedVariant do component cha (ProductDetailInteractive) quản lý và
+// truyền xuống, để đồng bộ 2 chiều được với việc bấm chọn ảnh thumbnail bên khung ảnh.
+export default function ProductPurchasePanel({ product, selected, onSelectedChange, matchedVariant }) {
   const { addItem } = useCart();
   const hasVariants = product.optionTypes?.length > 0 && product.variants?.length > 0;
 
-  // chọn sẵn giá trị đầu của mỗi tuỳ chọn để có giá hiện ngay, khỏi chờ
-  const [selected, setSelected] = useState(() =>
-    hasVariants ? product.optionTypes.map((opt) => opt.values[0]) : []
-  );
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-
-  const matchedVariant = useMemo(() => {
-    if (!hasVariants) return null;
-    return (
-      product.variants.find(
-        (v) => v.optionValues.length === selected.length && v.optionValues.every((val, i) => val === selected[i])
-      ) || null
-    );
-  }, [selected, hasVariants, product.variants]);
 
   const displayPrice = hasVariants ? matchedVariant?.price ?? product.price : product.price;
   const canAdd = !hasVariants || !!matchedVariant;
 
-  // báo lên ngoài mỗi khi biến thể đang chọn đổi, để ảnh lớn tự đổi theo nếu biến thể có ảnh riêng
-  useEffect(() => {
-    onVariantChange?.(matchedVariant);
-  }, [matchedVariant]);
-
   function selectValue(optIdx, value) {
-    setSelected((prev) => {
-      const next = [...prev];
-      next[optIdx] = value;
-      return next;
-    });
+    const next = [...selected];
+    next[optIdx] = value;
+    onSelectedChange(next);
   }
 
   function handleAdd() {

@@ -1,67 +1,71 @@
 "use client";
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { apiWithRetry, friendlyErrorMessage } from "@/lib/api";
 import { compressImage } from "@/lib/imageCompress";
 
-const PREVIEW_SIZE = 200;
-const POPOVER_WIDTH = 224; // tương ứng w-56
-const POPOVER_EST_HEIGHT = 300; // ước lượng chiều cao tối đa, đủ để tính né mép màn hình
+const PREVIEW_SIZE = 500;
+const GAP = 6;
 
 // ô ảnh nhỏ gọn cho từng dòng biến thể trong bảng — bấm vào mở bảng chọn nhanh từ
 // các ảnh đã thêm ở mục "Hình ảnh" phía trên (không cần tải lại ảnh trùng cho từng
 // biến thể), vẫn giữ lựa chọn tải ảnh riêng khác nếu biến thể đó cần ảnh chưa có sẵn.
 //
 // Cả bảng chọn (popover) lẫn ảnh xem trước lớn đều render qua Portal thẳng ra ngoài
-// <body>, định vị bằng toạ độ thật (fixed) tính từ nút bấm — không phụ thuộc DOM cha,
-// nên không bao giờ bị bảng/thẻ khung có overflow-hidden cắt mất, dù dòng đó nằm ở đầu,
-// giữa hay cuối trang. Cả 2 đều tự "né" mép phải/dưới màn hình khi không đủ chỗ.
+// <body>, định vị bằng toạ độ thật (fixed) — không phụ thuộc DOM cha nên không bao
+// giờ bị bảng/thẻ khung có overflow-hidden cắt mất. Vị trí được TÍNH LẠI theo đúng
+// kích thước thật sau khi đã render (không ước lượng), nên popup luôn bám sát ngay
+// cạnh nút bấm, không bị lệch xa; và tự "né" mép phải/dưới màn hình khi không đủ chỗ.
 export default function VariantImageCell({ value, onChange, productImages = [] }) {
   const [uploading, setUploading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [popoverPos, setPopoverPos] = useState(null);
+  const [popoverPos, setPopoverPos] = useState(null); // null = đang đo kích thước, chưa hiện
   const [hoverImg, setHoverImg] = useState(null);
   const [hoverPos, setHoverPos] = useState(null);
   const triggerRef = useRef(null);
+  const popoverRef = useRef(null);
 
   function togglePopover() {
-    if (open) {
-      closeAll();
-      return;
-    }
-    const rect = triggerRef.current.getBoundingClientRect();
-    const gap = 6;
-
-    let left = rect.left;
-    if (left + POPOVER_WIDTH > window.innerWidth) left = window.innerWidth - POPOVER_WIDTH - gap;
-    if (left < gap) left = gap;
-
-    // mặc định mở xuống dưới nút bấm; nếu không đủ chỗ (dòng cuối bảng, cuối trang) thì
-    // tự chuyển sang mở lên trên nút bấm thay vì bị cắt mất phần dưới
-    let top = rect.bottom + gap;
-    if (top + POPOVER_EST_HEIGHT > window.innerHeight) {
-      top = rect.top - POPOVER_EST_HEIGHT - gap;
-      if (top < gap) top = gap;
-    }
-
-    setPopoverPos({ top, left });
-    setOpen(true);
+    if (open) closeAll();
+    else setOpen(true); // vị trí sẽ được tính trong useLayoutEffect, sau khi đo được kích thước thật
   }
 
   function closeAll() {
     setOpen(false);
+    setPopoverPos(null);
     setHoverImg(null);
     setHoverPos(null);
   }
+
+  // đo đúng kích thước thật của popover sau khi đã render (ẩn tạm) rồi mới đặt vị trí
+  // chính xác — thay vì đoán trước 1 chiều cao cố định dễ gây lệch xa điểm bấm
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current || !popoverRef.current) return;
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const popRect = popoverRef.current.getBoundingClientRect();
+
+    let left = triggerRect.left;
+    if (left + popRect.width > window.innerWidth) left = window.innerWidth - popRect.width - GAP;
+    if (left < GAP) left = GAP;
+
+    let top = triggerRect.bottom + GAP;
+    if (top + popRect.height > window.innerHeight) {
+      top = triggerRect.top - popRect.height - GAP; // không đủ chỗ dưới thì mở lên trên
+      if (top < GAP) top = GAP;
+    }
+
+    setPopoverPos({ top, left });
+  }, [open, productImages.length]);
 
   // tính vị trí ảnh xem trước dựa theo toạ độ thật của ô nhỏ trên màn hình, rồi tự
   // né mép phải/dưới nếu không đủ chỗ — tránh bị tràn ra ngoài viewport
   function showPreview(img, el) {
     const rect = el.getBoundingClientRect();
-    const gap = 8;
+    const gap = 10;
     let left = rect.right + gap;
     if (left + PREVIEW_SIZE > window.innerWidth) left = rect.left - PREVIEW_SIZE - gap;
+    if (left < gap) left = gap;
     let top = rect.top;
     if (top + PREVIEW_SIZE > window.innerHeight) top = window.innerHeight - PREVIEW_SIZE - gap;
     if (top < gap) top = gap;
@@ -123,12 +127,17 @@ export default function VariantImageCell({ value, onChange, productImages = [] }
         </button>
       )}
 
-      {open && popoverPos && typeof document !== "undefined" && createPortal(
+      {open && typeof document !== "undefined" && createPortal(
         <>
           <div className="fixed inset-0 z-[95]" onClick={closeAll} />
           <div
+            ref={popoverRef}
             className="fixed z-[96] w-56 bg-white border border-gray-200 rounded-lg shadow-xl p-3"
-            style={{ top: popoverPos.top, left: popoverPos.left }}
+            style={{
+              top: popoverPos?.top ?? 0,
+              left: popoverPos?.left ?? 0,
+              visibility: popoverPos ? "visible" : "hidden", // ẩn trong lúc đo kích thước, tránh nháy sai chỗ
+            }}
           >
             {productImages.length > 0 ? (
               <>
