@@ -38,7 +38,10 @@ export default function ProductGallery({ images = [], name, overrideImage, onThu
       </button>
 
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-3">
+        // giới hạn đúng 2 hàng, nhiều hơn thì cuộn dọc bên trong khung này (không đẩy
+        // dài cả trang) — "thumb-scroll" ở globals.css làm thanh cuộn hiện rõ, dễ thấy
+        // hơn thanh cuộn mặc định vốn rất mảnh và mờ của trình duyệt
+        <div className="grid grid-cols-4 gap-3 max-h-[190px] sm:max-h-[210px] md:max-h-[230px] overflow-y-auto pr-1.5 thumb-scroll">
           {images.map((img, i) => (
             <button
               key={i}
