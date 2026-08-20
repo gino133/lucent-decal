@@ -179,14 +179,19 @@ function PreviewBlock({ block }) {
   }
 
   if (type === "logos") {
+    const logos = data.logos || [];
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-8">
         {data.title && <h2 className="font-heading text-xl font-bold mb-6 text-center">{data.title}</h2>}
-        <div className="flex flex-wrap justify-center gap-8 opacity-70">
-          {(data.logos || []).map((src, i) => (
-            <div key={i} className="relative w-24 h-12"><Image src={src} alt="" fill className="object-contain" unoptimized /></div>
-          ))}
-        </div>
+        {logos.length > 0 && (
+          <div className="relative overflow-hidden marquee-mask">
+            <div className="flex w-max gap-12 opacity-70 animate-marquee hover:[animation-play-state:paused]">
+              {[...logos, ...logos].map((src, i) => (
+                <div key={i} className="relative w-24 h-12 shrink-0"><Image src={src} alt="" fill className="object-contain" unoptimized /></div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
     );
   }

@@ -265,14 +265,22 @@ async function Block({ block }) {
   }
 
   if (type === "logos") {
+    const logos = data.logos || [];
     return (
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-12">
         {data.title && <h2 className="font-heading text-2xl font-bold mb-8 text-center">{data.title}</h2>}
-        <div className="flex flex-wrap justify-center gap-10 opacity-70">
-          {(data.logos || []).map((src, i) => (
-            <div key={i} className="relative w-28 h-14"><Image src={src} alt="" fill className="object-contain" /></div>
-          ))}
-        </div>
+        {logos.length > 0 && (
+          // chạy ngang liên tục, lặp vô hạn: nhân đôi danh sách logo rồi dịch chuyển đúng
+          // 50% chiều rộng — hết vòng đầu thì vòng 2 (bản sao) đã nằm sẵn đúng chỗ, nối
+          // liền mạch không bị giật/khựng lúc lặp lại
+          <div className="relative overflow-hidden marquee-mask">
+            <div className="flex w-max gap-16 opacity-70 animate-marquee hover:[animation-play-state:paused]">
+              {[...logos, ...logos].map((src, i) => (
+                <div key={i} className="relative w-28 h-14 shrink-0"><Image src={src} alt="" fill className="object-contain" /></div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
     );
   }
