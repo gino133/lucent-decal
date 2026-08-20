@@ -154,3 +154,22 @@ body {
 .thumb-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
+
+/* Logo đối tác chạy ngang liên tục (marquee). Nội dung bên trong đã được nhân đôi
+   trong component, nên dịch chuyển đúng -50% là hết đúng 1 vòng gốc, bản sao thứ 2
+   đã nằm sẵn tại vị trí ban đầu -> lặp lại liền mạch, không giật/khựng. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+/* mờ dần ở 2 mép trái/phải cho đỡ bị "cắt cụt" logo giữa chừng khi nhìn vào */
+.marquee-mask {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee { animation: none; }
+}
