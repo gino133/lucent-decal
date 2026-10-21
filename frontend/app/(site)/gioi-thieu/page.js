@@ -1,5 +1,11 @@
 import { getPage } from "@/lib/api";
 import BlockRenderer from "@/components/BlockRenderer";
+import { buildPageMetadata } from "@/lib/pageMetadata";
+
+export const generateMetadata = () => buildPageMetadata({
+  slug: "gioi-thieu", path: "/gioi-thieu", fallbackTitle: "Giới thiệu",
+  fallbackDescription: "Giới thiệu về đơn vị cung cấp và thi công film dán nội thất tại TP.HCM: sản phẩm nhập khẩu chính hãng, quy trình rõ ràng, công trình thực tế.",
+});
 
 export default async function AboutPage() {
   const page = await getPage("gioi-thieu");

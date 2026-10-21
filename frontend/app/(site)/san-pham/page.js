@@ -3,6 +3,24 @@ import { getProducts, getCategories, getSettings } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import ProductFilterBar from "@/components/ProductFilterBar";
 
+// canonical luôn trỏ về URL gốc không kèm filter/sort/page — tránh Google coi mỗi tổ
+// hợp lọc/sắp xếp là 1 trang riêng biệt (trùng nội dung lẫn nhau, loãng tín hiệu SEO)
+export async function generateMetadata() {
+  const settings = await getSettings();
+  const siteName = settings?.siteName || "Website";
+  const siteUrl = (settings?.seo?.siteUrl || "").replace(/\/$/, "");
+  // từ khoá chính: "film dán nội thất giá rẻ thành phố Hồ Chí Minh" — tiêu đề dùng dạng
+  // đầy đủ có dấu, mô tả dùng thêm dạng viết tắt "TP.HCM" 1 lần cho tự nhiên (không nhồi từ khoá)
+  const title = `Film dán nội thất giá rẻ tại thành phố Hồ Chí Minh | ${siteName}`;
+  const description = `Film dán nội thất giá rẻ tại TP.HCM: đa dạng mẫu vân gỗ, nhập khẩu chính hãng, thi công nhanh. Xem bảng giá và đặt hàng tại ${siteName}.`;
+  return {
+    title,
+    description,
+    ...(siteUrl && { alternates: { canonical: `${siteUrl}/san-pham` } }),
+    openGraph: { title, description, siteName, locale: "vi_VN", type: "website" },
+  };
+}
+
 export default async function ProductsPage({ searchParams }) {
   const category = searchParams?.category || "";
   const origin = searchParams?.origin || "";

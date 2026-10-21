@@ -1,7 +1,23 @@
 import Link from "next/link";
-import { getProjects, getCategories } from "@/lib/api";
+import { getProjects, getCategories, getSettings } from "@/lib/api";
 import ProjectCard from "@/components/ProjectCard";
 import CategoryScrollBar from "@/components/CategoryScrollBar";
+
+export async function generateMetadata() {
+  const settings = await getSettings();
+  const siteName = settings?.siteName || "Website";
+  const siteUrl = (settings?.seo?.siteUrl || "").replace(/\/$/, "");
+  // từ khoá dịch vụ: "thi công film dán nội thất TP.HCM" — trang dự án là bằng chứng thực tế
+  // cho dịch vụ thi công nên dùng từ khoá này ở đây (còn trang sản phẩm dùng từ khoá "bán hàng")
+  const title = `Thi công film dán nội thất tại TP.HCM - Công trình thực tế | ${siteName}`;
+  const description = `Dịch vụ thi công film dán nội thất tại TP.HCM: cải tạo tủ bếp, căn hộ, văn phòng. Xem hình ảnh thực tế trước và sau khi thi công của ${siteName}.`;
+  return {
+    title,
+    description,
+    ...(siteUrl && { alternates: { canonical: `${siteUrl}/du-an` } }),
+    openGraph: { title, description, siteName, locale: "vi_VN", type: "website" },
+  };
+}
 
 export default async function ProjectsPage({ searchParams }) {
   const category = searchParams?.category || "";

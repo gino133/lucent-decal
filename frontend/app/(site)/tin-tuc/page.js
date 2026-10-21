@@ -1,7 +1,21 @@
 import Link from "next/link";
-import { getPosts, getCategories } from "@/lib/api";
+import { getPosts, getCategories, getSettings } from "@/lib/api";
 import PostCard from "@/components/PostCard";
 import CategoryScrollBar from "@/components/CategoryScrollBar";
+
+export async function generateMetadata() {
+  const settings = await getSettings();
+  const siteName = settings?.siteName || "Website";
+  const siteUrl = (settings?.seo?.siteUrl || "").replace(/\/$/, "");
+  const title = `Tin tức | ${siteName}`;
+  const description = `Tin tức, kiến thức và hướng dẫn mới nhất từ ${siteName}.`;
+  return {
+    title,
+    description,
+    ...(siteUrl && { alternates: { canonical: `${siteUrl}/tin-tuc` } }),
+    openGraph: { title, description, siteName, locale: "vi_VN", type: "website" },
+  };
+}
 
 export default async function BlogListPage({ searchParams }) {
   const category = searchParams?.category || "";

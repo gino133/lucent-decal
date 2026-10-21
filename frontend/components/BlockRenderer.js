@@ -195,7 +195,7 @@ async function Block({ block }) {
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-16">
         <div className="flex items-center justify-between mb-8">
           <h2 className="font-heading text-2xl md:text-3xl font-bold">{data.title || "Sản phẩm nổi bật"}</h2>
-          <Link href="/san-pham" className="text-sm font-semibold hover:text-secondary">Xem tất cả →</Link>
+          <Link href="/san-pham" className="text-sm font-semibold hover:text-secondary">Xem tất cả sản phẩm →</Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {products.map((p) => <ProductCard key={p._id} product={p} />)}
@@ -216,7 +216,7 @@ async function Block({ block }) {
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-16">
         <div className="flex items-center justify-between mb-8">
           <h2 className="font-heading text-2xl md:text-3xl font-bold">{data.title || "Tin tức mới nhất"}</h2>
-          <Link href="/tin-tuc" className="text-sm font-semibold hover:text-secondary">Xem tất cả →</Link>
+          <Link href="/tin-tuc" className="text-sm font-semibold hover:text-secondary">Xem tất cả tin tức →</Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {posts.map((p) => <PostCard key={p._id} post={p} />)}
@@ -233,7 +233,7 @@ async function Block({ block }) {
       <section className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-16">
         <div className="flex items-center justify-between mb-8">
           <h2 className="font-heading text-2xl md:text-3xl font-bold">{data.title || "Dự án tiêu biểu"}</h2>
-          <Link href="/du-an" className="text-sm font-semibold hover:text-secondary">Xem tất cả →</Link>
+          <Link href="/du-an" className="text-sm font-semibold hover:text-secondary">Xem tất cả dự án thi công →</Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {projects.map((p) => <ProjectCard key={p._id} project={p} />)}

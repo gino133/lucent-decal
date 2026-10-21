@@ -1,5 +1,11 @@
 import { getPage, getSettings } from "@/lib/api";
 import BlockRenderer from "@/components/BlockRenderer";
+import { buildPageMetadata } from "@/lib/pageMetadata";
+
+export const generateMetadata = () => buildPageMetadata({
+  slug: "lien-he", path: "/lien-he", fallbackTitle: "Liên hệ",
+  fallbackDescription: "Liên hệ tư vấn và báo giá film dán nội thất, thi công tại TP.HCM. Gọi điện hoặc để lại thông tin, chúng tôi phản hồi nhanh.",
+});
 
 export default async function ContactPage() {
   const [page, settings] = await Promise.all([getPage("lien-he"), getSettings()]);

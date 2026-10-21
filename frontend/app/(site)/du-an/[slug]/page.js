@@ -5,8 +5,41 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import ClickableImage from "@/components/ClickableImage";
 import BreadcrumbSchema from "@/components/BreadcrumbSchema";
 import FaqSchema from "@/components/FaqSchema";
-import { sanitizeRichHtml, extractFaqPairs } from "@/lib/richtext";
+import { sanitizeRichHtml, extractFaqPairs, stripHtmlTags } from "@/lib/richtext";
 import { notFound } from "next/navigation";
+
+// tiêu đề/mô tả riêng cho từng dự án — dùng tên khách hàng + địa điểm nếu có, nội dung
+// thực tế của dự án đó chứ không phải mô tả chung chung lấy từ Cài đặt site
+export async function generateMetadata({ params }) {
+  const [project, settings] = await Promise.all([getProject(params.slug), getSettings()]);
+  if (!project) return {};
+
+  const siteName = settings?.siteName || "Website";
+  const title = `${project.name} | ${siteName}`;
+  const plainDesc = stripHtmlTags(project.description || "");
+  const description = plainDesc
+    ? plainDesc.slice(0, 160)
+    : `Dự án ${project.name}${project.location ? ` tại ${project.location}` : ""} — thực hiện bởi ${siteName}.`;
+  const siteUrl = (settings?.seo?.siteUrl || "").replace(/\/$/, "");
+  const url = siteUrl ? `${siteUrl}/du-an/${project.slug}` : undefined;
+  const image = project.coverImage;
+
+  return {
+    title,
+    description,
+    ...(url && { alternates: { canonical: url } }),
+    openGraph: {
+      title,
+      description,
+      ...(url && { url }),
+      siteName,
+      locale: "vi_VN",
+      type: "website",
+      ...(image && { images: [{ url: image }] }),
+    },
+    twitter: { card: "summary_large_image", title, description, ...(image && { images: [image] }) },
+  };
+}
 
 export default async function ProjectDetailPage({ params }) {
   const [project, settings] = await Promise.all([getProject(params.slug), getSettings()]);
@@ -85,6 +118,11 @@ export default async function ProjectDetailPage({ params }) {
                   <div className="p-4">
                     <h3 className="font-heading font-semibold mb-1">{m.name}</h3>
                     {m.description && <p className="text-sm text-on-background/60">{m.description}</p>}
+                    {m.productSlug && (
+                      <Link href={`/san-pham/${m.productSlug}`} className="inline-block mt-3 text-sm font-semibold underline hover:text-secondary">
+                        Xem sản phẩm {m.name} →
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}

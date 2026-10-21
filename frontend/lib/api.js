@@ -64,6 +64,7 @@ async function fetchServer(path, { revalidate = 60, ...opts } = {}) {
 export const getSettings = () => fetchServer("/settings", { revalidate: 120 });
 export const getMenu = (key = "main") => fetchServer(`/menu/${key}`, { revalidate: 120 });
 export const getPage = (slug) => fetchServer(`/pages/${slug}`, { revalidate: 30 });
+export const getPublishedPages = () => fetchServer(`/pages/public/list`, { revalidate: 300 });
 export const getProducts = (query = "") => fetchServer(`/products${query}`, { revalidate: 30 });
 export const getProduct = (slug) => fetchServer(`/products/${slug}`, { revalidate: 30 });
 export const getProjects = (query = "") => fetchServer(`/projects${query}`, { revalidate: 30 });

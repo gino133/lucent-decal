@@ -10,6 +10,7 @@ import RichTextEditor from "./RichTextEditor";
 export default function ProjectForm({ initial, projectId }) {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]); // để chọn sản phẩm liên kết cho từng vật liệu
   const [form, setForm] = useState(
     initial || {
       name: "", category: "", client: "", location: "", year: "",
@@ -21,6 +22,7 @@ export default function ProjectForm({ initial, projectId }) {
 
   useEffect(() => {
     api.get("/categories?type=project").then((res) => setCategories(res.data));
+    api.get("/products/admin/all").then((res) => setProducts(res.data)).catch(() => {});
   }, []);
 
   function update(field, value) { setForm((f) => ({ ...f, [field]: value })); }
@@ -43,7 +45,7 @@ export default function ProjectForm({ initial, projectId }) {
     update("materials", next);
   }
   function addMaterial() {
-    update("materials", [...(form.materials || []), { name: "", description: "", image: "" }]);
+    update("materials", [...(form.materials || []), { name: "", description: "", image: "", productSlug: "" }]);
   }
   function removeMaterial(idx) {
     update("materials", (form.materials || []).filter((_, i) => i !== idx));
@@ -142,6 +144,14 @@ export default function ProjectForm({ initial, projectId }) {
                   onChange={(e) => updateMaterial(idx, "description", e.target.value)}
                   className="w-full border rounded-lg px-3 py-2 text-sm"
                 />
+                <select
+                  value={m.productSlug || ""}
+                  onChange={(e) => updateMaterial(idx, "productSlug", e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="">Không liên kết sản phẩm</option>
+                  {products.map((p) => <option key={p._id} value={p.slug}>Liên kết tới: {p.name}</option>)}
+                </select>
               </div>
             </div>
           </div>
