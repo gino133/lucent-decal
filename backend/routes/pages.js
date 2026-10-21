@@ -4,6 +4,12 @@ const { protect } = require("../middleware/auth");
 const asyncHandler = require("../middleware/asyncHandler");
 const router = express.Router();
 
+// GET /api/pages/public/list (public — chỉ slug + ngày sửa, dùng cho sitemap.xml)
+router.get("/public/list", asyncHandler(async (req, res) => {
+  const pages = await Page.find({ isPublished: true }, "slug updatedAt");
+  res.json(pages);
+}));
+
 // GET /api/pages/:slug (public)
 router.get("/:slug", asyncHandler(async (req, res) => {
   const page = await Page.findOne({ slug: req.params.slug, isPublished: true });

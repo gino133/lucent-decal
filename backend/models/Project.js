@@ -18,6 +18,9 @@ const projectSchema = new mongoose.Schema(
         name: { type: String, required: true },
         description: { type: String, default: "" },
         image: { type: String, default: "" },
+        // slug sản phẩm trên site mà vật liệu này tương ứng (không bắt buộc) — để trang dự án
+        // tự gắn link nội bộ sang đúng trang sản phẩm đó
+        productSlug: { type: String, default: "" },
       },
     ],
     // Cặp ảnh so sánh Trước/Sau, hiển thị dạng thanh trượt kéo được ở trang chi tiết dự án
