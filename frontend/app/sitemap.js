@@ -18,8 +18,13 @@ export default async function sitemap() {
     getPublishedPages(),
   ]);
 
-  const staticRoutes = ["", "/san-pham", "/du-an", "/tin-tuc", "/gioi-thieu", "/lien-he", "/ho-so-nang-luc"].map((path) => ({
+  // các trang cố định (kể cả 3 trang dựng bằng page builder có slug cố định) chỉ liệt kê 1 lần
+  // ở đây, kèm ngày sửa lấy từ dữ liệu trang nếu có — tránh trùng URL với danh sách trang tự tạo bên dưới
+  const pageUpdatedAt = Object.fromEntries((pages || []).map((pg) => [pg.slug, pg.updatedAt]));
+  const FIXED_PAGE_SLUGS = ["gioi-thieu", "lien-he", "ho-so-nang-luc"];
+  const staticRoutes = ["", "/san-pham", "/du-an", "/tin-tuc", ...FIXED_PAGE_SLUGS.map((s) => `/${s}`)].map((path) => ({
     url: `${siteUrl}${path}`,
+    ...(pageUpdatedAt[path.slice(1)] && { lastModified: pageUpdatedAt[path.slice(1)] }),
     changeFrequency: path === "" ? "daily" : "weekly",
     priority: path === "" ? 1 : 0.8,
   }));
@@ -45,9 +50,9 @@ export default async function sitemap() {
     priority: 0.6,
   }));
 
-  // trang tự tạo (page builder) — bỏ "home" vì đã có trong staticRoutes (route "")
+  // trang tự tạo (page builder) — bỏ "home" và 3 trang cố định vì đã có trong staticRoutes
   const customPageUrls = (pages || [])
-    .filter((pg) => pg.slug !== "home")
+    .filter((pg) => pg.slug !== "home" && !FIXED_PAGE_SLUGS.includes(pg.slug))
     .map((pg) => ({
       url: `${siteUrl}/${pg.slug}`,
       lastModified: pg.updatedAt,

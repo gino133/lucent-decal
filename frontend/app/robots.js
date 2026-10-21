@@ -11,9 +11,10 @@ export default async function robots() {
     rules: {
       userAgent: "*",
       allow: "/",
+      // "/trang/" (có dấu / cuối) vì Disallow khớp theo tiền tố — viết "/trang" sẽ chặn nhầm cả /trang-tri-noi-that...
       // /trang/* trùng nội dung với /<slug> (route gọn hơn, đã có trong sitemap) —
       // chặn để tránh Google thấy 2 URL khác nhau cùng 1 nội dung (duplicate content)
-      disallow: ["/admin", "/gio-hang", "/checkout", "/trang"],
+      disallow: ["/admin", "/gio-hang", "/checkout", "/trang/"],
     },
     ...(siteUrl && { sitemap: `${siteUrl}/sitemap.xml` }),
   };
